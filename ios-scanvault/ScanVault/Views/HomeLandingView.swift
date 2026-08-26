@@ -134,7 +134,7 @@ struct HomeLandingView: View {
 /// The ScanVault mark, drawn in code: a graphite vault-fronted folder holding
 /// a paper-white page, sealed by an amber dial. The traveling scan light in
 /// `.scanSweep` plays over it while the hero is lit.
-private struct BrandMark: View {
+struct BrandMark: View {
     var body: some View {
         ZStack {
             // Vault-front folder body.

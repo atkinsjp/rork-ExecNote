@@ -6,16 +6,20 @@
 import Foundation
 import Observation
 
-/// Isolated vault state: which biometric-protected folders are currently
-/// unlocked in this session.
+/// Isolated vault state: whether the whole document vault is sealed behind
+/// Face ID / Touch ID, and which biometric-protected folders are unlocked in
+/// this session.
 ///
-/// Every locked folder re-seals the moment the app enters the background
-/// (`scenePhase == .background`), so a scan left on the table never leaks
-/// private contents.
+/// The app-level gate seals at launch and re-seals whenever the app leaves
+/// the foreground, so nothing is visible without an unlock. Locked folders
+/// additionally re-seal independently (`scenePhase == .background`).
 @MainActor
 @Observable
 final class VaultLockManager {
     static let shared = VaultLockManager()
+
+    /// Whole-app gate: sealed until a successful biometric/passcode unlock.
+    private(set) var isAppSealed: Bool = true
 
     /// Folder IDs unlocked during this foreground session.
     private(set) var unlockedFolderIds: Set<String> = []
@@ -42,6 +46,39 @@ final class VaultLockManager {
     /// Documents hidden from search / recents while their folder is sealed.
     func hidesContents(of folder: AppFolder) -> Bool {
         isLocked(folder)
+    }
+
+    // MARK: - App gate
+
+    /// Re-seals the entire vault. Called when the scene leaves the foreground.
+    /// Skipped mid-authentication so sealing never fights an active prompt.
+    func sealApp() {
+        guard !isAuthenticating else { return }
+        isAppSealed = true
+    }
+
+    /// Runs the Face ID / Touch ID / passcode prompt and opens the vault on
+    /// success.
+    @discardableResult
+    func unsealApp() async -> Bool {
+        guard isAppSealed else { return true }
+        guard !isAuthenticating else { return false }
+
+        isAuthenticating = true
+        lastError = nil
+        defer { isAuthenticating = false }
+
+        let result = await BiometricAuthService.authenticate(
+            reason: "Unlock your document vault"
+        )
+        switch result {
+        case .success:
+            isAppSealed = false
+            return true
+        case .failure(let message):
+            lastError = message
+            return false
+        }
     }
 
     // MARK: - Locking

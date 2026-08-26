@@ -23,6 +23,7 @@ struct ContentView: View {
 
     var body: some View {
         launchRoot
+            .animation(Theme.flight, value: locks.isAppSealed)
             .environment(store)
             .environment(scanner)
             .environment(subscriptions)
@@ -36,6 +37,13 @@ struct ContentView: View {
                 // Every vault folder re-seals the moment the app backgrounds.
                 if phase != .active {
                     locks.lockAll()
+                }
+                // The whole vault re-seals whenever the app leaves the
+                // foreground, so nothing leaks from the app switcher.
+                // (`.inactive` is skipped — system prompts like Face ID and
+                // Control Center trip it without really leaving.)
+                if phase == .background {
+                    locks.sealApp()
                 }
             }
             .alert(
@@ -82,8 +90,13 @@ struct ContentView: View {
                 removal: .opacity
             ))
         case .app:
-            MainDashboardView()
-                .transition(.opacity)
+            if locks.isAppSealed {
+                VaultGateView()
+                    .transition(.opacity)
+            } else {
+                MainDashboardView()
+                    .transition(.opacity)
+            }
         }
     }
 
