@@ -1,6 +1,6 @@
 //
 //  LegalDocumentConfig.swift
-//  ScanVault
+//  IntelliDoc
 //
 
 import Foundation
@@ -69,15 +69,15 @@ nonisolated enum LegalDocumentConfig {
         switch kind {
         case .privacyPolicy:
             """
-            ### ScanVault Privacy Policy — Summary
+            ### IntelliDoc Privacy Policy — Summary
 
-            **What we collect.** ScanVault is designed so your paperwork never leaves this device. Scans, OCR text, transcriptions, redactions and signature assets live in the encrypted app sandbox. Only optional metadata you choose to sync (titles, folder names, page counts) travels to our Firebase backend, tied to a random identifier — never your name or email.
+            **What we collect.** IntelliDoc is designed so your paperwork never leaves this device. Scans, OCR text, transcriptions, redactions and signature assets live in the encrypted app sandbox. Only optional metadata you choose to sync (titles, folder names, page counts) travels to our Firebase backend, tied to a random identifier — never your name or email.
 
             **What we do NOT collect.** We never transmit OCR text, document images, biometric templates or document contents of any kind. No advertising identifiers are collected and no ads are shown.
 
             **Third-party processing.** Cloud sync uses Google Firebase (Firestore, Storage) as a processor under contract. If you use an AI rewrite feature, only selected text you explicitly send is processed by our AI gateway and discarded after the response.
 
-            **Biometrics.** Face ID / Touch ID hashes are stored by iOS in the Secure Enclave. ScanVault never sees or stores them.
+            **Biometrics.** Face ID / Touch ID hashes are stored by iOS in the Secure Enclave. IntelliDoc never sees or stores them.
 
             **Your rights.** You can export every piece of user-created data as a portable archive from **Settings → Manage Data**, or permanently erase all device and cloud copies via **Delete Account & Data**. Deletion is immediate and irreversible.
 
@@ -87,13 +87,13 @@ nonisolated enum LegalDocumentConfig {
             """
         case .termsOfService:
             """
-            ### ScanVault Terms of Service — Summary
+            ### IntelliDoc Terms of Service — Summary
 
-            **The service.** ScanVault provides on-device document scanning, OCR, redaction, classification, transcription, e-signatures and optional cloud sync. Unless you agreed to separate written terms with the developer, these services are licensed under **Apple's Standard EULA** ([apple.com/legal/internet-services/itunes/dev/stdeula](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/)), which governs this app's permitted use, maintenance, liability and warranty terms.
+            **The service.** IntelliDoc provides on-device document scanning, OCR, redaction, classification, transcription, e-signatures and optional cloud sync. Unless you agreed to separate written terms with the developer, these services are licensed under **Apple's Standard EULA** ([apple.com/legal/internet-services/itunes/dev/stdeula](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/)), which governs this app's permitted use, maintenance, liability and warranty terms.
 
             **Subscriptions.** Pro features renew automatically through your Apple ID unless cancelled at least 24 hours before period end. Manage or cancel anytime in App Store → Subscriptions. Restore purchases from any paywall.
 
-            **Acceptable use.** Do not use ScanVault to forge signatures, bypass the law, or violate the rights of others. Documents you scan remain yours.
+            **Acceptable use.** Do not use IntelliDoc to forge signatures, bypass the law, or violate the rights of others. Documents you scan remain yours.
 
             **No legal advice.** Redaction and signing tools are utilities; verify results where outcomes matter to you.
 
@@ -105,7 +105,7 @@ nonisolated enum LegalDocumentConfig {
             """
             ### Third-Party Licenses & SDK Notices
 
-            ScanVault is built with first-party Swift code and the following third-party components and services. Full license texts are maintained in the repository `THIRD_PARTY_NOTICES.md`.
+            IntelliDoc is built with first-party Swift code and the following third-party components and services. Full license texts are maintained in the repository `THIRD_PARTY_NOTICES.md`.
 
             **Google Firebase (Firestore, Storage, Functions)** — used for optional metadata sync and secure share links. Data processed only as described in the Privacy Policy. © Google LLC.
 

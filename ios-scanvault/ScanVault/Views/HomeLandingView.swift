@@ -1,6 +1,6 @@
 //
 //  HomeLandingView.swift
-//  ScanVault
+//  IntelliDoc
 //
 
 import SwiftUI
@@ -34,7 +34,7 @@ struct HomeLandingView: View {
                     .shadow(color: Theme.amber.opacity(isLogoLit ? 0.22 : 0), radius: 34, y: 12)
                     .animation(Theme.flight, value: isLogoLit)
 
-                Text("ScanVault")
+                Text("IntelliDoc")
                     .font(.system(size: 42, weight: .bold, design: .serif))
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.top, 26)
@@ -131,7 +131,7 @@ struct HomeLandingView: View {
 
 // MARK: - Logo
 
-/// The ScanVault mark, drawn in code: a graphite vault-fronted folder holding
+/// The IntelliDoc mark, drawn in code: a graphite vault-fronted folder holding
 /// a paper-white page, sealed by an amber dial. The traveling scan light in
 /// `.scanSweep` plays over it while the hero is lit.
 struct BrandMark: View {

@@ -162,7 +162,7 @@ final class DocumentExportCoordinator {
             .replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
             .trimmingCharacters(in: CharacterSet(charactersIn: " ."))
-        return cleaned.isEmpty ? "ScanVault-Export" : cleaned
+        return cleaned.isEmpty ? "IntelliDoc-Export" : cleaned
     }
 }
 

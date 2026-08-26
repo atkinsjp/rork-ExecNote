@@ -1,11 +1,11 @@
 //
 //  WelcomePage.swift
-//  ScanVault
+//  IntelliDoc
 //
 
 import UIKit
 
-/// Draws the single-page "Welcome to ScanVault" sheet that seeds a brand-new
+/// Draws the single-page "Welcome to IntelliDoc" sheet that seeds a brand-new
 /// vault. It is a genuine rendered page, so it flows through the same PDF,
 /// thumbnail and PDFKit pipeline as a real scan.
 nonisolated enum WelcomePage {
@@ -21,7 +21,7 @@ nonisolated enum WelcomePage {
             UIColor(red: 0.91, green: 0.64, blue: 0.24, alpha: 1).setFill()
             cg.fill(CGRect(x: 0, y: 0, width: size.width, height: 26))
 
-            let title = "ScanVault"
+            let title = "IntelliDoc"
             title.draw(
                 at: CGPoint(x: 120, y: 170),
                 withAttributes: [

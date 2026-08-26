@@ -280,7 +280,7 @@ export const _shareDownloadEndpoint = onRequest(
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="scanvault-${payload.storagePath.split("/").pop()}"`
+      `attachment; filename="intellidoc-${payload.storagePath.split("/").pop()}"`
     );
     await file.createReadStream().pipe(res);
     await share.ref.update({ downloadCount: FieldValue.increment(1) });

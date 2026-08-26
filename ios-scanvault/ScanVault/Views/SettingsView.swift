@@ -251,7 +251,7 @@ struct SettingsView: View {
 
             VStack(spacing: 0) {
                 voicePhraseRow(
-                    phrase: "\u{201C}Scan a document in ScanVault\u{201D}",
+                    phrase: "\u{201C}Scan a document in IntelliDoc\u{201D}",
                     detail: "Opens the camera hands-free"
                 )
                 Rectangle()
@@ -259,7 +259,7 @@ struct SettingsView: View {
                     .frame(height: 1)
                     .padding(.horizontal, 14)
                 voicePhraseRow(
-                    phrase: "\u{201C}New scan in ScanVault\u{201D}",
+                    phrase: "\u{201C}New scan in IntelliDoc\u{201D}",
                     detail: "Same action, shorter phrase"
                 )
             }

@@ -47,7 +47,7 @@ actor PDFManager {
 
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = [
-            kCGPDFContextCreator as String: "ScanVault",
+            kCGPDFContextCreator as String: "IntelliDoc",
         ]
         let renderer = UIGraphicsPDFRenderer(
             bounds: CGRect(origin: .zero, size: Self.pageSize),

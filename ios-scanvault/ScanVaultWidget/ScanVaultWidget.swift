@@ -276,7 +276,7 @@ struct VaultAccessoryWidget: Widget {
         StaticConfiguration(kind: kind, provider: VaultWidgetProvider()) { entry in
             VaultAccessoryView(entry: entry)
         }
-        .configurationDisplayName("ScanVault Lock Screen")
+        .configurationDisplayName("IntelliDoc Lock Screen")
         .description("One-tap camera trigger and your latest scans.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular])
     }

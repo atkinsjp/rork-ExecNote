@@ -1,6 +1,6 @@
 //
 //  PDFSignerService.swift
-//  ScanVault
+//  IntelliDoc
 //
 
 import CryptoKit
@@ -172,7 +172,7 @@ final class PDFSignerService {
     nonisolated private static func renderPDF(pages: [UIImage]) async throws -> Data {
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = [
-            kCGPDFContextCreator as String: "ScanVault Sign",
+            kCGPDFContextCreator as String: "IntelliDoc Sign",
         ]
         let renderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: PDFManager.pageSize), format: format)
 
@@ -323,7 +323,7 @@ final class PDFSignerService {
             }
 
             // Footer.
-            draw("Generated on-device by ScanVault · No server processed this document.",
+            draw("Generated on-device by IntelliDoc · No server processed this document.",
                  font: .systemFont(ofSize: 9, weight: .regular), color: muted,
                  at: CGPoint(x: margin, y: size.height - 56), maxWidth: size.width - margin * 2)
         }

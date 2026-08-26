@@ -25,7 +25,7 @@ struct ScanUploadActivity: Widget {
                         Image(systemName: "lock.shield.fill")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(Color(red: 0.910, green: 0.639, blue: 0.239))
-                        Text("ScanVault")
+                        Text("IntelliDoc")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.white.opacity(0.7))
                     }

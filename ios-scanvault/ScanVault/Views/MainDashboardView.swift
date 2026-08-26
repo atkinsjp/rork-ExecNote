@@ -1,6 +1,6 @@
 //
 //  MainDashboardView.swift
-//  ScanVault
+//  IntelliDoc
 //
 
 import PhotosUI
@@ -188,7 +188,7 @@ struct MainDashboardView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("ScanVault")
+                    Text("IntelliDoc")
                         .font(Theme.display(.largeTitle))
                         .foregroundStyle(
                             LinearGradient(
@@ -258,7 +258,7 @@ struct MainDashboardView: View {
             .symbolEffect(.pulse, value: !subscriptions.hasPro)
         }
         .buttonStyle(PressableStyle())
-        .accessibilityLabel(subscriptions.hasPro ? "ScanVault Pro active" : "Upgrade to Pro")
+        .accessibilityLabel(subscriptions.hasPro ? "IntelliDoc Pro active" : "Upgrade to Pro")
     }
 
     private var cloudPill: some View {

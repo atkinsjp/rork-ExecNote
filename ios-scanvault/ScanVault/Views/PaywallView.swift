@@ -66,7 +66,7 @@ struct PaywallView: View {
                 .foregroundStyle(Theme.amber)
                 .symbolEffect(.pulse, options: .nonRepeating)
 
-            Text("ScanVault Pro")
+            Text("IntelliDoc Pro")
                 .font(Theme.display(.largeTitle))
                 .foregroundStyle(Theme.textPrimary)
 

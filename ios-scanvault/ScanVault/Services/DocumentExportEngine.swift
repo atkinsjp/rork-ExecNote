@@ -1,6 +1,6 @@
 //
 //  DocumentExportEngine.swift
-//  ScanVault
+//  IntelliDoc
 //
 //  Multi-format generation for the Notes Studio: editable DOCX files built
 //  from raw OOXML packaging, and branded PDFs with typography, tables and
@@ -243,7 +243,7 @@ final class DocumentExportEngine {
             .replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
             .trimmingCharacters(in: CharacterSet(charactersIn: " ."))
-        return cleaned.isEmpty ? "ScanVault Notes" : cleaned
+        return cleaned.isEmpty ? "IntelliDoc Notes" : cleaned
     }
 }
 
@@ -402,7 +402,7 @@ private struct PDFRenderer {
         let format = UIGraphicsPDFRendererFormat()
         format.documentInfo = [
             kCGPDFContextTitle as String: "\(title) — \(record.format.fileSuffix)",
-            kCGPDFContextCreator as String: "ScanVault",
+            kCGPDFContextCreator as String: "IntelliDoc",
         ]
         let renderer = UIGraphicsPDFRenderer(
             bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight),
@@ -713,7 +713,7 @@ private struct PDFRenderer {
         hairline.setStroke()
         rule.stroke()
 
-        "ScanVault".draw(
+        "IntelliDoc".draw(
             at: CGPoint(x: margin, y: baseline - 4),
             withAttributes: [
                 .font: UIFont.monospacedSystemFont(ofSize: 7.5, weight: .medium),
@@ -1046,9 +1046,9 @@ private extension DocumentExportEngine {
 
         private static let themeXML = """
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="ScanVault">
+        <a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="IntelliDoc">
         <a:themeElements>
-        <a:clrScheme name="ScanVault">
+        <a:clrScheme name="IntelliDoc">
         <a:dk1><a:srgbClr val="23272F"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1>
         <a:dk2><a:srgbClr val="3E4450"/></a:dk2><a:lt2><a:srgbClr val="F4EBD8"/></a:lt2>
         <a:accent1><a:srgbClr val="E8A33D"/></a:accent1><a:accent2><a:srgbClr val="C9922E"/></a:accent2>
@@ -1056,11 +1056,11 @@ private extension DocumentExportEngine {
         <a:accent5><a:srgbClr val="1F6FEB"/></a:accent5><a:accent6><a:srgbClr val="E2664F"/></a:accent6>
         <a:hlink><a:srgbClr val="1F6FEB"/></a:hlink><a:folHlink><a:srgbClr val="8A7CE0"/></a:folHlink>
         </a:clrScheme>
-        <a:fontScheme name="ScanVault">
+        <a:fontScheme name="IntelliDoc">
         <a:majorFont><a:latin typeface="Helvetica Neue"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont>
         <a:minorFont><a:latin typeface="Helvetica Neue"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont>
         </a:fontScheme>
-        <a:fmtScheme name="ScanVault">
+        <a:fmtScheme name="IntelliDoc">
         <a:fillStyleLst>
         <a:solidFill><a:schemeClr val="phClr"/></a:solidFill>
         <a:solidFill><a:schemeClr val="phClr"/></a:solidFill>

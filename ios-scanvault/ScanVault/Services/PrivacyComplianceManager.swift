@@ -40,7 +40,7 @@ final class PrivacyComplianceManager {
 
     // MARK: - Export All My Data
 
-    /// Builds `scanvault-export.zip` containing:
+    /// Builds `intellidoc-export.zip` containing:
     /// - `metadata/index.json`      — folders + documents (Codable JSON)
     /// - `PDFs/<title>.pdf`         — every locally-available scan
     /// - `Transcriptions/<title>.txt` — OCR pages and note transforms
@@ -190,7 +190,7 @@ final class PrivacyComplianceManager {
         let exports = FileManager.default
             .urls(for: .documentDirectory, in: .userDomainMask)[0]
             .appending(path: "Exports")
-        return exports.appending(path: "scanvault-export-\(stamp).zip")
+        return exports.appending(path: "intellidoc-export-\(stamp).zip")
     }
 
     private func appSupportDirectory() -> URL {

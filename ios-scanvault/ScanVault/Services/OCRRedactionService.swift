@@ -215,7 +215,7 @@ actor OCRRedactionService {
         guard !pages.isEmpty, !applied.isEmpty else { throw RedactionError.nothingToRedact }
 
         let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = [kCGPDFContextCreator as String: "ScanVault"]
+        format.documentInfo = [kCGPDFContextCreator as String: "IntelliDoc"]
 
         let bounds = CGRect(origin: .zero, size: PDFManager.pageSize)
         let renderer = UIGraphicsPDFRenderer(bounds: bounds, format: format)

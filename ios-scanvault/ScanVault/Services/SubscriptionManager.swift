@@ -9,7 +9,7 @@ import StoreKit
 
 // MARK: - Feature gates
 
-/// Capabilities unlocked by ScanVault Pro.
+/// Capabilities unlocked by IntelliDoc Pro.
 nonisolated enum ProFeature: String, CaseIterable, Sendable, Identifiable {
     case unlimitedRedactions
     case signatureKitAndAudit

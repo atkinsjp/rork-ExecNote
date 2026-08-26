@@ -571,7 +571,7 @@ struct PDFSigningEditorView: View {
             for: live,
             placements: placements.map(\.data),
             profiles: profiles,
-            signerName: name.isEmpty ? "ScanVault User" : name,
+            signerName: name.isEmpty ? "IntelliDoc User" : name,
             signerEmail: email.isEmpty ? "on-device@scanvault" : email,
             includeAuditPage: includeAuditPage
         )

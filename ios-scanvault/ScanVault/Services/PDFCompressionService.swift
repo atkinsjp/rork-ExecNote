@@ -177,7 +177,7 @@ actor PDFCompressionService {
         _ = quality
         _ = grayscale
         let format = UIGraphicsPDFRendererFormat()
-        format.documentInfo = [kCGPDFContextCreator as String: "ScanVault Export"]
+        format.documentInfo = [kCGPDFContextCreator as String: "IntelliDoc Export"]
         let renderer = UIGraphicsPDFRenderer(
             bounds: CGRect(origin: .zero, size: PDFManager.pageSize),
             format: format
