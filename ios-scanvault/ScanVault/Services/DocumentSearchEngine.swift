@@ -53,6 +53,29 @@ nonisolated enum SearchDateFilter: String, CaseIterable, Identifiable, Sendable 
     }
 }
 
+/// Result ordering options for the dashboard search filter menu.
+nonisolated enum SearchSort: String, CaseIterable, Identifiable, Sendable {
+    case relevance
+    case newestFirst
+    case oldestFirst
+    case titleAZ
+    case fileType
+    case category
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .relevance: "Most relevant"
+        case .newestFirst: "Newest first"
+        case .oldestFirst: "Oldest first"
+        case .titleAZ: "Title A–Z"
+        case .fileType: "File type"
+        case .category: "Category"
+        }
+    }
+}
+
 /// In-memory full-text index over every document's OCR text.
 ///
 /// Documents are tokenized once and cached; subsequent searches score hits by
@@ -111,13 +134,14 @@ final class DocumentSearchEngine {
 
     // MARK: - Search
 
-    /// Filters documents by free-text query, optional document type, tag and
-    /// date range, ranked by relevance.
+    /// Filters documents by free-text query, optional document type, tag,
+    /// category and date range, ranked by relevance.
     func search(
         query: String,
         in documents: [ScannedDocument],
         docType: String? = nil,
         tag: String? = nil,
+        category: String? = nil,
         dateFilter: SearchDateFilter = .anyTime
     ) -> [ScannedDocument] {
         ensureIndexed(documents)
@@ -131,6 +155,9 @@ final class DocumentSearchEngine {
         return documents
             .filter { document in
                 if let docType, document.docType?.localizedCaseInsensitiveCompare(docType) != .orderedSame {
+                    return false
+                }
+                if let category, document.categoryTag?.localizedCaseInsensitiveCompare(category) != .orderedSame {
                     return false
                 }
                 if let tag, !document.ocrKeywords.contains(where: { $0.localizedCaseInsensitiveContains(tag) }) {

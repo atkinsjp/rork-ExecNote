@@ -29,6 +29,10 @@ final class VaultStore {
     var searchTypeFilter: String?
     /// Date-range filter applied on top of the free-text query.
     var searchDateFilter: SearchDateFilter = .anyTime
+    /// Smart-routing category filter (e.g. "Tax & Finance") on top of the query.
+    var searchCategoryFilter: String?
+    /// Ordering applied to the filtered result set.
+    var searchSort: SearchSort = .relevance
     var banner: String?
 
     private let sync: FirebaseSyncService
@@ -155,19 +159,63 @@ final class VaultStore {
     }
 
     /// Full-text search across every non-locked document, ranked by the
-    /// on-device search engine and filtered by type / date range.
+    /// on-device search engine, filtered by type / category / date range and
+    /// ordered by the selected sort option.
     var searchResults: [ScannedDocument] {
         let locks = VaultLockManager.shared
         let searchable = documents.filter { document in
             guard let folder = folder(withId: document.folderId) else { return true }
             return !locks.hidesContents(of: folder)
         }
-        return DocumentSearchEngine.shared.search(
+        let results = DocumentSearchEngine.shared.search(
             query: searchQuery,
             in: searchable,
             docType: searchTypeFilter,
+            category: searchCategoryFilter,
             dateFilter: searchDateFilter
         )
+        return sorted(results)
+    }
+
+    private func sorted(_ results: [ScannedDocument]) -> [ScannedDocument] {
+        switch searchSort {
+        case .relevance:
+            results
+        case .newestFirst:
+            results.sorted { $0.createdAt > $1.createdAt }
+        case .oldestFirst:
+            results.sorted { $0.createdAt < $1.createdAt }
+        case .titleAZ:
+            results.sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+        case .fileType:
+            results.sorted {
+                let lhs = $0.docType ?? "~unfiled"
+                let rhs = $1.docType ?? "~unfiled"
+                if lhs.caseInsensitiveCompare(rhs) == .orderedSame {
+                    return $0.createdAt > $1.createdAt
+                }
+                return lhs.caseInsensitiveCompare(rhs) == .orderedAscending
+            }
+        case .category:
+            results.sorted {
+                let lhs = $0.categoryTag ?? "~uncategorized"
+                let rhs = $1.categoryTag ?? "~uncategorized"
+                if lhs.caseInsensitiveCompare(rhs) == .orderedSame {
+                    return $0.createdAt > $1.createdAt
+                }
+                return lhs.caseInsensitiveCompare(rhs) == .orderedAscending
+            }
+        }
+    }
+
+    /// Number of active search filters (type / date / category), shown as a
+    /// badge on the filter menu chip.
+    var activeSearchFilters: Int {
+        (searchTypeFilter != nil ? 1 : 0)
+            + (searchDateFilter != .anyTime ? 1 : 0)
+            + (searchCategoryFilter != nil ? 1 : 0)
     }
 
     /// Distinct document types present in the vault (for the filter menu).
@@ -177,6 +225,17 @@ final class VaultStore {
         for document in documents {
             guard let docType = document.docType, seen.insert(docType).inserted else { continue }
             result.append(docType)
+        }
+        return result.sorted()
+    }
+
+    /// Distinct smart-routing categories present in the vault (for the filter menu).
+    var availableCategories: [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for document in documents {
+            guard let tag = document.categoryTag, seen.insert(tag).inserted else { continue }
+            result.append(tag)
         }
         return result.sorted()
     }

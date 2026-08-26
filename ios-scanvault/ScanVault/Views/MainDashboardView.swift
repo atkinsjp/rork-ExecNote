@@ -407,40 +407,117 @@ struct MainDashboardView: View {
         }
     }
 
-    /// Type + date filters layered on top of the free-text query.
+    /// Consolidated filter & sort menu layered on top of the free-text query:
+    /// result ordering plus file-type / date-range / smart-category filters.
     private var searchFilterRow: some View {
         @Bindable var bindableStore = store
         return HStack(spacing: 8) {
             Menu {
-                Button("All types") {
-                    bindableStore.searchTypeFilter = nil
-                    Haptics.selection()
-                }
-                ForEach(store.availableDocTypes, id: \.self) { docType in
-                    Button(docType) {
-                        bindableStore.searchTypeFilter = docType
-                        Haptics.selection()
+                // --- Sort results ------------------------------------------------
+                Section("Sort results") {
+                    ForEach(SearchSort.allCases) { option in
+                        Button {
+                            Haptics.selection()
+                            bindableStore.searchSort = option
+                        } label: {
+                            if store.searchSort == option {
+                                Label(option.label, systemImage: "checkmark")
+                            } else {
+                                Text(option.label)
+                            }
+                        }
                     }
                 }
-            } label: {
-                filterChip(symbol: "doc.text", label: store.searchTypeFilter ?? "All types")
-            }
 
-            Menu {
-                ForEach(SearchDateFilter.allCases) { filter in
+                // --- File type ---------------------------------------------------
+                Section("File type") {
                     Button {
-                        bindableStore.searchDateFilter = filter
                         Haptics.selection()
+                        bindableStore.searchTypeFilter = nil
                     } label: {
-                        if store.searchDateFilter == filter {
-                            Label(filter.label, systemImage: "checkmark")
+                        if store.searchTypeFilter == nil {
+                            Label("All types", systemImage: "checkmark")
                         } else {
-                            Text(filter.label)
+                            Text("All types")
+                        }
+                    }
+                    ForEach(store.availableDocTypes, id: \.self) { docType in
+                        Button {
+                            Haptics.selection()
+                            bindableStore.searchTypeFilter = docType
+                        } label: {
+                            if store.searchTypeFilter == docType {
+                                Label(docType, systemImage: "checkmark")
+                            } else {
+                                Text(docType)
+                            }
+                        }
+                    }
+                }
+
+                // --- Date range --------------------------------------------------
+                Section("Date") {
+                    ForEach(SearchDateFilter.allCases) { filter in
+                        Button {
+                            Haptics.selection()
+                            bindableStore.searchDateFilter = filter
+                        } label: {
+                            if store.searchDateFilter == filter {
+                                Label(filter.label, systemImage: "checkmark")
+                            } else {
+                                Text(filter.label)
+                            }
+                        }
+                    }
+                }
+
+                // --- Smart-routing category ---------------------------------------
+                if !store.availableCategories.isEmpty {
+                    Section("Category") {
+                        Button {
+                            Haptics.selection()
+                            bindableStore.searchCategoryFilter = nil
+                        } label: {
+                            if store.searchCategoryFilter == nil {
+                                Label("All categories", systemImage: "checkmark")
+                            } else {
+                                Text("All categories")
+                            }
+                        }
+                        ForEach(store.availableCategories, id: \.self) { category in
+                            Button {
+                                Haptics.selection()
+                                bindableStore.searchCategoryFilter = category
+                            } label: {
+                                if store.searchCategoryFilter == category {
+                                    Label(category, systemImage: "checkmark")
+                                } else {
+                                    Text(category)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if store.activeSearchFilters > 0 {
+                    Section {
+                        Button(role: .destructive) {
+                            Haptics.warning()
+                            bindableStore.searchTypeFilter = nil
+                            bindableStore.searchDateFilter = .anyTime
+                            bindableStore.searchCategoryFilter = nil
+                        } label: {
+                            Label("Clear filters", systemImage: "xmark.circle")
                         }
                     }
                 }
             } label: {
-                filterChip(symbol: "calendar", label: store.searchDateFilter.label)
+                filterChip(
+                    symbol: "slider.horizontal.3",
+                    label: store.activeSearchFilters == 0
+                        ? "Filters · \(store.searchSort.label)"
+                        : "Filters · \(store.activeSearchFilters)"
+                )
             }
 
             Spacer(minLength: 0)
