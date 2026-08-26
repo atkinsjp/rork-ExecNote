@@ -30,6 +30,12 @@ struct ContentView: View {
             .environment(locks)
             .environment(DeepLinkRouter.shared)
             .preferredColorScheme((AppearanceMode(rawValue: appearanceRaw) ?? .light).colorScheme)
+            .task {
+                // Infrastructure bootstrapping: live connectivity watch for
+                // the offline sync queue + remote paywall/legal config fetch.
+                OfflineSyncCoordinator.shared.startMonitoring()
+                await RemoteConfigManager.shared.refresh()
+            }
             .onOpenURL { url in
                 handleDeepLink(url)
             }

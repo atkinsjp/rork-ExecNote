@@ -54,14 +54,15 @@ actor LocalArchive {
 /// Stable anonymous identifier used as `{userId}` in Firebase paths until real
 /// account sign-in is added.
 nonisolated enum VaultIdentity {
-    private static let key = "scanvault.userId"
+    /// Storage key published so the compliance wipe can erase the identity.
+    static let storageKey = "scanvault.userId"
 
     static var userId: String {
-        if let existing = UserDefaults.standard.string(forKey: key), !existing.isEmpty {
+        if let existing = UserDefaults.standard.string(forKey: storageKey), !existing.isEmpty {
             return existing
         }
         let generated = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        UserDefaults.standard.set(generated, forKey: key)
+        UserDefaults.standard.set(generated, forKey: storageKey)
         return generated
     }
 }

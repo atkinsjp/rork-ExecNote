@@ -140,6 +140,23 @@ final class VaultStore {
         await archive.save(.init(folders: folders, documents: documents))
     }
 
+    /// Clears every in-memory trace of the vault. Called by the compliance
+    /// wipe after disk + cloud data has been destroyed; also cancels realtime
+    /// listeners so the backend can't resurrect rows mid-deletion.
+    func resetForAccountDeletion() async {
+        realtimeTask?.cancel()
+        realtimeTask = nil
+        folders = []
+        documents.removeAll()
+        syncStates.removeAll()
+        thumbnails.removeAll()
+        searchQuery = ""
+        searchTypeFilter = nil
+        searchCategoryFilter = nil
+        searchDateFilter = .anyTime
+        searchSort = .relevance
+    }
+
     // MARK: - Derived data
 
     func documentCount(in folder: AppFolder) -> Int {
@@ -353,6 +370,7 @@ final class VaultStore {
             }
 
             SpotlightIndexer.index(document)
+            TelemetryService.track(.scanCompleted, attributes: ["pages": String(pages.count)])
             upload(document: document, data: result.data)
             await updateWidgetSnapshot()
             return document
@@ -371,6 +389,13 @@ final class VaultStore {
         // Cloud sync is a Pro capability — the free tier stays on-device.
         guard SubscriptionManager.shared.hasAccess(to: .cloudSync) else {
             syncStates[document.id] = .localOnly
+            Task { await LiveActivityCoordinator.shared.complete() }
+            return
+        }
+        // Offline-first: when connectivity is down, stage into the durable
+        // sync queue instead of surfacing an error. Drains automatically.
+        guard OfflineSyncCoordinator.shared.isNetworkAvailable else {
+            OfflineSyncCoordinator.shared.enqueue(document: document, pdfData: data)
             Task { await LiveActivityCoordinator.shared.complete() }
             return
         }
@@ -525,6 +550,7 @@ final class VaultStore {
             documents[index].isRedacted = true
             documents[index].redactionCount = applied.count
             let updated = documents[index]
+            TelemetryService.track(.redactionApplied)
 
             thumbnails[document.id] = await pdf.thumbnail(for: result.url)
             await persist()
@@ -594,6 +620,7 @@ final class VaultStore {
                 documents[index].pageCount += 1
             }
             let updated = documents[index]
+            TelemetryService.track(.signatureStamped)
 
             thumbnails[document.id] = await pdf.thumbnail(for: result.url)
             await persist()

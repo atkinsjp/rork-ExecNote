@@ -6,12 +6,18 @@
 import AppIntents
 import SwiftUI
 
-/// App settings sheet: appearance (System / Light / Dark) plus vault facts.
+/// App settings sheet: appearance (System / Light / Dark), Siri setup and the
+/// legally-mandated Legal & Privacy suite.
 struct SettingsView: View {
     @Environment(VaultStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
     @AppStorage(AppearanceMode.storageKey) private var appearanceRaw = AppearanceMode.system.rawValue
+
+    @State private var showingPrivacyPolicy = false
+    @State private var showingTerms = false
+    @State private var showingLicenses = false
+    @State private var showingDataManagement = false
 
     private var mode: AppearanceMode {
         AppearanceMode(rawValue: appearanceRaw) ?? .system
@@ -26,6 +32,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 22) {
                         appearanceSection
                         siriSection
+                        legalSection
                         aboutSection
                     }
                     .padding(.horizontal, 20)
@@ -54,6 +61,110 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(mode.colorScheme)
+        .sheet(isPresented: $showingPrivacyPolicy) {
+            LegalDocumentView(kind: .privacyPolicy)
+        }
+        .sheet(isPresented: $showingTerms) {
+            LegalDocumentView(kind: .termsOfService)
+        }
+        .sheet(isPresented: $showingLicenses) {
+            LegalDocumentView(kind: .thirdPartyLicenses)
+        }
+        .sheet(isPresented: $showingDataManagement) {
+            NavigationStack {
+                DataManagementSheet()
+                    .environment(store)
+            }
+        }
+    }
+
+    // MARK: - Legal & Privacy
+
+    /// Guideline 5.1.1 mandated surface: privacy policy, terms/EULA,
+    /// third-party notices and the account/data deletion flow.
+    private var legalSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "LEGAL & PRIVACY")
+
+            VStack(spacing: 0) {
+                settingsLinkRow(symbol: "hand.raised.fill", title: "Privacy Policy") {
+                    showingPrivacyPolicy = true
+                }
+                hairline
+                settingsLinkRow(symbol: "doc.plaintext.fill", title: "Terms of Service") {
+                    showingTerms = true
+                }
+                hairline
+                settingsLinkRow(symbol: "list.bullet.rectangle.fill", title: "Third-Party Licenses & SDK Notices") {
+                    showingLicenses = true
+                }
+                hairline
+                settingsLinkRow(
+                    symbol: "trash.slash.fill",
+                    title: "Manage Data & Account Deletion",
+                    tint: Color(hex: "C0453B")
+                ) {
+                    showingDataManagement = true
+                }
+            }
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Theme.surface)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Theme.hairline, lineWidth: 1)
+            }
+
+            Text("Legal pages open in an in-app reader when online and fall back to an accurate bundled copy offline.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Theme.textTertiary)
+        }
+    }
+
+    private var hairline: some View {
+        Rectangle()
+            .fill(Theme.hairline)
+            .frame(height: 1)
+            .padding(.horizontal, 14)
+    }
+
+    private func settingsLinkRow(
+        symbol: String,
+        title: String,
+        tint: Color = Theme.textPrimary,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            Haptics.selection()
+            action()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint == Theme.textPrimary ? Theme.amber : tint)
+                    .frame(width: 36, height: 36)
+                    .background {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(tint == Theme.textPrimary ? Theme.amber.opacity(0.14) : tint.opacity(0.12))
+                    }
+
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Theme.textTertiary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(.rect)
+        }
+        .buttonStyle(PressableStyle(scale: 0.99))
+        .accessibilityLabel(title)
     }
 
     // MARK: - Appearance

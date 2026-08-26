@@ -17,6 +17,7 @@ struct PaywallView: View {
     var compact = false
 
     @State private var selectedPlanID: String = PlanPresentation.mockCatalog[0].id
+    @State private var presentingLegalKind: LegalDocumentKind?
 
     private var selectedPlan: PlanPresentation {
         subscriptions.plans.first { $0.id == selectedPlanID }
@@ -31,6 +32,9 @@ struct PaywallView: View {
                 VStack(spacing: 22) {
                     hero
                     featureList
+                    if RemoteConfigManager.shared.annualDiscountPercentage > 0 {
+                        annualDiscountBadge
+                    }
                     planTiers
                     callToAction
                     proofRow
@@ -40,6 +44,10 @@ struct PaywallView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 26)
             }
+        }
+        // Mandated legal surfaces open in-app (5.1.1).
+        .sheet(item: $presentingLegalKind) { kind in
+            LegalDocumentView(kind: kind)
         }
         .onAppear {
             if !subscriptions.plans.contains(where: { $0.id == selectedPlanID }) {
@@ -62,7 +70,7 @@ struct PaywallView: View {
                 .font(Theme.display(.largeTitle))
                 .foregroundStyle(Theme.textPrimary)
 
-            Text("Your paperwork never leaves this device. Pro unlocks the full privacy stack — unlimited redaction, the multi-profile signature kit with cryptographic audit trail, and zero-knowledge cloud sync.")
+            Text(heroCopy)
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -160,6 +168,31 @@ struct PaywallView: View {
         }
     }
 
+    /// Remote Config A/B headline copy (`paywall_variant`).
+    private var heroCopy: String {
+        switch RemoteConfigManager.shared.paywallVariant {
+        case .trialFocused:
+            "Start your free trial and try everything on this device — unlimited redaction, the multi-profile signature kit, and zero-knowledge cloud sync. Cancel anytime."
+        case .lifetimeHighlight:
+            "Pay once, own it forever. Unlimited redaction, signature kits with cryptographic audit trails, and zero-knowledge cloud sync — no recurring fees, ever."
+        case .featureComparison:
+            "Your paperwork never leaves this device. Pro unlocks unlimited redaction, e-signatures with SHA-256 audit trail, encrypted cross-device backup, and premium OCR quality."
+        }
+    }
+
+    private var annualDiscountBadge: some View {
+        Label(
+            "Save \(RemoteConfigManager.shared.annualDiscountPercentage)% on annual",
+            systemImage: "tag.fill"
+        )
+        .font(.system(size: 12, weight: .bold))
+        .foregroundStyle(Color(hex: "1A1206"))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background { Capsule().fill(Theme.amberBright) }
+        .shadow(color: Theme.amber.opacity(0.3), radius: 8, y: 3)
+    }
+
     private var ctaLabel: String {
         if subscriptions.hasPro { return "Pro Active — Enjoy" }
         if let trial = selectedPlan.trialDays, trial > 0 {
@@ -203,10 +236,18 @@ struct PaywallView: View {
         .overlay { Capsule().strokeBorder(Color(hex: "3FB0A0").opacity(0.35), lineWidth: 1) }
     }
 
+    /// High-contrast mandated links beside Restore Purchases — taps open the
+    /// in-app legal reader rather than cold-jumping out of the funnel.
     private var legalRow: some View {
         HStack(spacing: 18) {
-            Link("Terms of Service", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
-            Link("Privacy Policy", destination: URL(string: "https://rork.app/privacy")!)
+            Button("Terms of Use (EULA)") {
+                Haptics.selection()
+                presentingLegalKind = .termsOfService
+            }
+            Button("Privacy Policy") {
+                Haptics.selection()
+                presentingLegalKind = .privacyPolicy
+            }
             Button {
                 Haptics.selection()
                 Task { await subscriptions.restore() }
@@ -214,14 +255,21 @@ struct PaywallView: View {
                 Text("Restore Purchases")
             }
         }
-        .font(.system(size: 12, weight: .medium))
-        .tint(Theme.textSecondary)
+        .font(.system(size: 12, weight: .semibold))
+        .tint(Theme.textPrimary)
     }
 
     // MARK: - Actions
 
     private func purchase() async {
+        let wasPro = subscriptions.hasPro
         await subscriptions.purchase(selectedPlan)
+        if !wasPro && subscriptions.hasPro {
+            TelemetryService.track(
+                .paywallConverted,
+                attributes: ["variant": RemoteConfigManager.shared.paywallVariant.rawValue]
+            )
+        }
     }
 }
 
