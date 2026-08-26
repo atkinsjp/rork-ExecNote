@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "ScanVault",
+      "path": "ios-scanvault",
+      "framework": "swift"
+    }
+  ],
+  "$schema": "https://rork.com/schema/rork.json"
+}
