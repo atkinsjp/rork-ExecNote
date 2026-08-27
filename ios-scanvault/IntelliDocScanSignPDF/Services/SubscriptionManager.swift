@@ -96,6 +96,10 @@ final class SubscriptionManager {
     private(set) var plans: [PlanPresentation] = []
     private(set) var storeProducts: [String: Product] = [:]
     private(set) var hasPro = false
+    /// Product ID of the active entitlement among known product IDs, if any.
+    private(set) var activePlanID: String?
+    /// Renewal/expiration date reported by StoreKit for the active plan.
+    private(set) var currentRenewalDate: Date?
     private(set) var isLoadingProducts = true
     private(set) var purchaseInFlight = false
     var statusMessage: String?
@@ -232,25 +236,37 @@ final class SubscriptionManager {
 
     // MARK: - Entitlements
 
-    /// Walks the StoreKit 2 current-entitlements stream and unlocks Pro if any
-    /// active, unrevoked subscription or non-consumable is found.
+    /// Walks the StoreKit 2 current-entitlements stream, unlocks Pro if any
+    /// active, unrevoked subscription or non-consumable is found, and records
+    /// which known plan is live plus its renewal date for the management UI.
     func refreshEntitlements(mockUnlock: Bool = false) async {
         if mockUnlock {
             hasPro = true
+            activePlanID = nil
+            currentRenewalDate = nil
             return
         }
 
         var unlocked = false
+        var activeID: String?
+        var renewal: Date?
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? checkVerified(result) else { continue }
-            if transaction.revocationDate == nil,
-               let expiration = transaction.expirationDate {
-                unlocked = unlocked || expiration > Date.now
-            } else if transaction.revocationDate == nil {
-                unlocked = true
+            guard transaction.revocationDate == nil else { continue }
+            // No expiration (non-consumables) counts as active; expiring
+            // entitlements are active only until their renewal date.
+            let expiration = transaction.expirationDate
+            let isActive = expiration.map { $0 > Date.now } ?? true
+            guard isActive else { continue }
+            unlocked = true
+            if Self.productIDs.contains(transaction.productID) {
+                activeID = transaction.productID
+                renewal = expiration
             }
         }
         hasPro = unlocked
+        activePlanID = activeID
+        currentRenewalDate = renewal
     }
 
     private func listenForTransactions() async {

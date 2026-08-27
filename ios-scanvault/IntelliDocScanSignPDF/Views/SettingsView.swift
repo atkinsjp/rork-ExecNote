@@ -6,10 +6,11 @@
 import AppIntents
 import SwiftUI
 
-/// App settings sheet: appearance (System / Light / Dark), Siri setup and the
-/// legally-mandated Legal & Privacy suite.
+/// App settings sheet: subscription management, appearance (System / Light /
+/// Dark), Siri setup and the legally-mandated Legal & Privacy suite.
 struct SettingsView: View {
     @Environment(VaultStore.self) private var store
+    @Environment(SubscriptionManager.self) private var subscriptions
     @Environment(\.dismiss) private var dismiss
 
     @AppStorage(AppearanceMode.storageKey) private var appearanceRaw = AppearanceMode.system.rawValue
@@ -31,6 +32,7 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
                         appearanceSection
+                        subscriptionSection
                         siriSection
                         legalSection
                         aboutSection
@@ -75,6 +77,62 @@ struct SettingsView: View {
                 DataManagementSheet()
                     .environment(store)
             }
+        }
+    }
+
+    // MARK: - Subscription
+
+    private var subscriptionSubtitle: String {
+        if subscriptions.hasPro {
+            let source = subscriptions.plans.isEmpty ? PlanPresentation.mockCatalog : subscriptions.plans
+            if let id = subscriptions.activePlanID,
+               let plan = source.first(where: { $0.id == id }) {
+                return "Pro · \(plan.title) plan"
+            }
+            return "Pro unlocked"
+        }
+        return "Free plan · Upgrade or restore anytime"
+    }
+
+    /// Entry point into the dedicated plan-management screen.
+    private var subscriptionSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "INTELLIDOC PRO")
+
+            NavigationLink {
+                SubscriptionManagementView()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "crown.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.amber)
+                        .frame(width: 36, height: 36)
+                        .background {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Theme.amber.opacity(0.14))
+                        }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Manage Subscription")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Theme.textPrimary)
+                        Text(subscriptionSubtitle)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.textTertiary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .contentShape(.rect)
+            }
+            .buttonStyle(PressableStyle(scale: 0.99))
+            .accessibilityLabel("Manage your IntelliDoc Pro subscription")
         }
     }
 
