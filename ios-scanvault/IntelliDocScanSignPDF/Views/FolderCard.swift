@@ -13,6 +13,8 @@ struct FolderCard: View {
     let count: Int
     var isPulsing: Bool = false
     var isLocked: Bool = false
+    /// A dragged document is hovering over this tile.
+    var isDropTarget: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -80,13 +82,20 @@ struct FolderCard: View {
                     LockVeil(tint: folder.tint)
                 }
             }
-            .scaleEffect(isPulsing ? 1.045 : 1)
-            .shadow(color: folder.tint.opacity(isPulsing ? 0.45 : 0), radius: 20)
+            .overlay {
+                // Amber halo while a dragged document hovers over the tile.
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(isDropTarget ? Theme.amber : .clear, lineWidth: 3)
+                    .shadow(color: Theme.amber.opacity(isDropTarget ? 0.6 : 0), radius: 14)
+            }
+            .scaleEffect(isDropTarget ? 1.06 : (isPulsing ? 1.045 : 1))
+            .shadow(color: folder.tint.opacity(isPulsing || isDropTarget ? 0.45 : 0), radius: 20)
         }
         .buttonStyle(PressableStyle())
         .animation(Theme.soft, value: isPulsing)
         .animation(Theme.soft, value: count)
-        .accessibilityLabel("\(folder.name) folder, \(countLabel)")
+        .animation(Theme.snap, value: isDropTarget)
+        .accessibilityLabel("\(folder.name) folder, \(countLabel)\(isDropTarget ? ", ready to receive" : "")")
     }
 
     private var countLabel: String {

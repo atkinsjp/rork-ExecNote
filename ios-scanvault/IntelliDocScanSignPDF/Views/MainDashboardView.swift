@@ -44,6 +44,10 @@ struct MainDashboardView: View {
     @State private var flightLanded = false
     @State private var pulsingFolderId: String?
 
+    /// Active drag-and-drop session state.
+    @State private var dropTargetFolderId: String?
+    @State private var movedNotice: String?
+
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
@@ -86,6 +90,7 @@ struct MainDashboardView: View {
                 }
                 .allowsHitTesting(false)
             }
+            .overlay(alignment: .bottom) { fileNoticeOverlay }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: VaultRoute.self) { route in
                 switch route {
@@ -311,6 +316,57 @@ struct MainDashboardView: View {
         Haptics.impact(.medium)
     }
 
+    // MARK: - Drag-and-drop filing
+
+    /// Files a drag-dropped scan into its new folder, then celebrates on the
+    /// receiving tile exactly like a freshly captured scan does.
+    private func completeFolderDrop(_ document: ScannedDocument, into folder: AppFolder) {
+        guard folder.id != document.folderId else {
+            Haptics.selection()
+            return
+        }
+        withAnimation(Theme.soft) {
+            store.move(document, to: folder.id)
+        }
+        Haptics.success()
+        Task { await celebrate(folder.id) }
+        showNotice("Filed “\(document.title)” into \(folder.name)")
+    }
+
+    private func celebrate(_ folderId: String) async {
+        pulsingFolderId = folderId
+        try? await Task.sleep(for: .seconds(1))
+        if pulsingFolderId == folderId {
+            pulsingFolderId = nil
+        }
+    }
+
+    private func showNotice(_ text: String) {
+        withAnimation(Theme.snap) { movedNotice = text }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            if movedNotice == text {
+                withAnimation(Theme.snap) { movedNotice = nil }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var fileNoticeOverlay: some View {
+        if let movedNotice {
+            Label(movedNotice, systemImage: "checkmark.circle.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color(hex: "1A1206"))
+                .lineLimit(1)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background { Capsule().fill(Theme.amberBright) }
+                .shadow(color: Theme.amber.opacity(0.4), radius: 12, y: 5)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, 108)
+        }
+    }
+
     // MARK: - Sections
 
     private var foldersSection: some View {
@@ -323,7 +379,8 @@ struct MainDashboardView: View {
                         folder: folder,
                         count: store.documentCount(in: folder),
                         isPulsing: pulsingFolderId == folder.id,
-                        isLocked: locks.isLocked(folder)
+                        isLocked: locks.isLocked(folder),
+                        isDropTarget: dropTargetFolderId == folder.id
                     ) {
                         openFolder(folder)
                     }
@@ -347,6 +404,21 @@ struct MainDashboardView: View {
                             }
                         }
                     }
+                    // Drag-and-drop filing: lift any scan row, release it
+                    // here to re-file it into this folder.
+                    .folderDropTarget(
+                        folder,
+                        onHover: { active in
+                            guard active || dropTargetFolderId == folder.id else { return }
+                            dropTargetFolderId = active ? folder.id : nil
+                        },
+                        resolve: { id in
+                            store.documents.first { $0.id == id }
+                        },
+                        onMove: { document, target in
+                            completeFolderDrop(document, into: target)
+                        }
+                    )
                 }
 
                 NewFolderCard {

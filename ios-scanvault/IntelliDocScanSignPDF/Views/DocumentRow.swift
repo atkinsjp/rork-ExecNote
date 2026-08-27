@@ -85,6 +85,9 @@ struct DocumentRow: View {
             }
         }
         .buttonStyle(PressableStyle(scale: 0.98))
+        // Long-press lift: drop onto a folder tile to re-file, or drag out
+        // of the app to export the PDF straight into another app.
+        .intelliDocDrag(document)
         .contextMenu {
             ForEach(store.folders.filter { $0.id != document.folderId }) { folder in
                 Button {
