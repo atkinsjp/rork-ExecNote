@@ -18,6 +18,8 @@ struct PaywallView: View {
 
     @State private var selectedPlanID: String = PlanPresentation.mockCatalog[0].id
     @State private var presentingLegalKind: LegalDocumentKind?
+    @State private var isRestoring = false
+    @State private var restoreMessage: String?
 
     private var selectedPlan: PlanPresentation {
         subscriptions.plans.first { $0.id == selectedPlanID }
@@ -37,6 +39,7 @@ struct PaywallView: View {
                     }
                     planTiers
                     callToAction
+                    restoreRow
                     proofRow
                     legalRow
                 }
@@ -236,8 +239,46 @@ struct PaywallView: View {
         .overlay { Capsule().strokeBorder(Color(hex: "3FB0A0").opacity(0.35), lineWidth: 1) }
     }
 
-    /// High-contrast mandated links beside Restore Purchases — taps open the
-    /// in-app legal reader rather than cold-jumping out of the funnel.
+    /// Prominent restore affordance — critical on new devices where the App
+    /// Store doesn't auto-surfaces previous subscriptions.
+    private var restoreRow: some View {
+        VStack(spacing: 8) {
+            Button {
+                Task { await restorePurchases() }
+            } label: {
+                HStack(spacing: 8) {
+                    if isRestoring {
+                        ProgressView()
+                            .tint(Theme.textPrimary)
+                    } else {
+                        Image(systemName: "arrow.clockwise.circle.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    Text(isRestoring ? "Restoring…" : "Restore Purchases")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .foregroundStyle(Theme.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background { Capsule().fill(Theme.surface) }
+                .overlay { Capsule().strokeBorder(Theme.hairline, lineWidth: 1) }
+            }
+            .buttonStyle(PressableStyle(scale: 0.97))
+            .disabled(isRestoring || subscriptions.purchaseInFlight)
+            .accessibilityLabel("Restore purchases from your Apple ID")
+
+            if let message = restoreMessage {
+                Text(message)
+                    .font(Theme.mono(.caption2))
+                    .foregroundStyle(subscriptions.hasPro ? Color(hex: "3FB0A0") : Theme.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    /// High-contrast mandated legal links — taps open the in-app legal reader
+    /// rather than cold-jumping out of the funnel.
     private var legalRow: some View {
         HStack(spacing: 18) {
             Button("Terms of Use (EULA)") {
@@ -248,18 +289,28 @@ struct PaywallView: View {
                 Haptics.selection()
                 presentingLegalKind = .privacyPolicy
             }
-            Button {
-                Haptics.selection()
-                Task { await subscriptions.restore() }
-            } label: {
-                Text("Restore Purchases")
-            }
         }
         .font(.system(size: 12, weight: .semibold))
         .tint(Theme.textPrimary)
     }
 
     // MARK: - Actions
+
+    private func restorePurchases() async {
+        guard !isRestoring else { return }
+        Haptics.selection()
+        withAnimation(Theme.snap) { restoreMessage = nil }
+        isRestoring = true
+        defer { isRestoring = false }
+
+        await subscriptions.restore()
+
+        let message = subscriptions.statusMessage ?? "Nothing to restore."
+        withAnimation(Theme.snap) { restoreMessage = message }
+        if subscriptions.hasPro {
+            Haptics.success()
+        }
+    }
 
     private func purchase() async {
         let wasPro = subscriptions.hasPro
