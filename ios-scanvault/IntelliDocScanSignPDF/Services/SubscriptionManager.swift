@@ -54,16 +54,16 @@ nonisolated struct PlanPresentation: Identifiable, Hashable, Sendable {
             id: "app.rork.scanvault.pro.annual",
             cadence: .annual,
             title: "Annual",
-            price: "$29.99",
-            subtitle: "$2.50 / month",
-            badge: "Best Value · Save 60%",
+            price: "$49.99",
+            subtitle: "$4.17 / month",
+            badge: "Best Value · Save 58%",
             trialDays: 3
         ),
         PlanPresentation(
             id: "app.rork.scanvault.pro.monthly",
             cadence: .monthly,
             title: "Monthly",
-            price: "$5.99",
+            price: "$9.99",
             subtitle: "billed monthly",
             badge: nil,
             trialDays: nil

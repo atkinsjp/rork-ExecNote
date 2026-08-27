@@ -36,7 +36,7 @@ final class RemoteConfigManager {
     }
 
     private(set) var paywallVariant: PaywallVariant = .trialFocused
-    private(set) var annualDiscountPercentage: Int = 60
+    private(set) var annualDiscountPercentage: Int = 58
     private(set) var freeTierScanLimit: Int = 5
     private(set) var geminiSystemPromptVersion: Int = 1
     /// Non-nil only when Remote Config supplied an override; falls through to
