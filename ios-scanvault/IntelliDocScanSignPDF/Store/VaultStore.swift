@@ -373,10 +373,59 @@ final class VaultStore {
             TelemetryService.track(.scanCompleted, attributes: ["pages": String(pages.count)])
             upload(document: document, data: result.data)
             await updateWidgetSnapshot()
+
+            // Automatic one-sentence AI summary, generated once the scan is
+            // filed and persisted with the document metadata.
+            Task { [weak self] in
+                _ = await self?.generateSummary(for: document)
+            }
             return document
         } catch {
             logger.error("Saving scan failed: \(error.localizedDescription, privacy: .public)")
             banner = error.localizedDescription
+            return nil
+        }
+    }
+
+    // MARK: - AI summary
+
+    /// Generates (or regenerates) the one-sentence AI summary for a document
+    /// from its on-device OCR text and persists it with the metadata.
+    ///
+    /// - Returns: the updated document on success, nil when there is no OCR
+    ///   text to summarize or the AI call failed.
+    @discardableResult
+    func generateSummary(for document: ScannedDocument, force: Bool = false) async -> ScannedDocument? {
+        guard let index = documents.firstIndex(where: { $0.id == document.id }) else { return nil }
+        guard force || documents[index].aiSummary == nil else { return documents[index] }
+
+        let source = documents[index]
+        guard !(source.ocrText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true) else {
+            logger.info("No readable text in \(source.title, privacy: .public) — skipping summary")
+            return nil
+        }
+
+        do {
+            let summary = try await DocumentSummaryService.summarize(
+                title: source.title,
+                docType: source.docType,
+                ocrText: source.ocrText ?? ""
+            )
+            // The document may have changed while the request was in flight.
+            guard documents.firstIndex(where: { $0.id == source.id }) != nil else { return nil }
+            let target = documents.firstIndex(where: { $0.id == source.id })!
+            documents[target].aiSummary = summary
+            let updated = documents[target]
+
+            await persist()
+            try? await sync.saveDocumentMetadata(updated, userId: userId)
+            SpotlightIndexer.index(updated)
+            return updated
+        } catch AIGatewayError.emptyResponse {
+            logger.info("Nothing to summarize for \(source.title, privacy: .public)")
+            return nil
+        } catch {
+            logger.error("AI summary failed: \(error.localizedDescription, privacy: .public)")
             return nil
         }
     }

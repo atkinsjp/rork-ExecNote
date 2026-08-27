@@ -32,6 +32,8 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
     var docType: String?
     /// Smart-routing category tag (e.g. "Tax & Finance").
     var categoryTag: String?
+    /// One-sentence AI summary of the document, shown as the reader header.
+    var aiSummary: String?
     /// Handwriting transcription from the Notes Studio, synced via Firestore.
     var noteTranscription: String?
     /// AI-generated variations of the notes, newest first.
@@ -41,7 +43,7 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         case id, title, folderId, storagePath, localURL, pageCount, ocrKeywords
         case createdAt, isRedacted, redactionCount
         case isSigned, signatureCount, auditHash
-        case ocrText, docType, categoryTag
+        case ocrText, docType, categoryTag, aiSummary
         case noteTranscription, noteTransforms
     }
 
@@ -62,6 +64,7 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         ocrText: String? = nil,
         docType: String? = nil,
         categoryTag: String? = nil,
+        aiSummary: String? = nil,
         noteTranscription: String? = nil,
         noteTransforms: [NoteTransformRecord] = []
     ) {
@@ -81,6 +84,7 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         self.ocrText = ocrText
         self.docType = docType
         self.categoryTag = categoryTag
+        self.aiSummary = aiSummary
         self.noteTranscription = noteTranscription
         self.noteTransforms = noteTransforms
     }
@@ -104,6 +108,7 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         ocrText = try container.decodeIfPresent(String.self, forKey: .ocrText)
         docType = try container.decodeIfPresent(String.self, forKey: .docType)
         categoryTag = try container.decodeIfPresent(String.self, forKey: .categoryTag)
+        aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         noteTranscription = try container.decodeIfPresent(String.self, forKey: .noteTranscription)
         noteTransforms = try container.decodeIfPresent([NoteTransformRecord].self, forKey: .noteTransforms) ?? []
     }

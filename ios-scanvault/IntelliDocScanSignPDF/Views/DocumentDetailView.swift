@@ -26,6 +26,9 @@ struct DocumentDetailView: View {
     /// Drives PDFSelection highlighting + match navigation inside the reader.
     @State private var searchController = PDFSearchController()
 
+    /// AI summary header lifecycle (done state lives on `live.aiSummary`).
+    @State private var summaryPhase: SummaryPhase = .idle
+
     private var live: ScannedDocument {
         store.documents.first { $0.id == document.id } ?? document
     }
@@ -40,6 +43,12 @@ struct DocumentDetailView: View {
 
             VStack(spacing: 0) {
                 metaBar
+
+                if showsSummaryHeader {
+                    summaryHeader
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 10)
+                }
 
                 if isSearching {
                     documentSearchBar
@@ -94,6 +103,14 @@ struct DocumentDetailView: View {
                         isRenaming = true
                     } label: {
                         Label("Rename", systemImage: "pencil")
+                    }
+
+                    if live.aiSummary != nil || liveHasOCR {
+                        Button {
+                            Task { await loadSummary(force: true) }
+                        } label: {
+                            Label("Regenerate Summary", systemImage: "sparkles")
+                        }
                     }
 
                     if fileURL != nil {
@@ -191,6 +208,19 @@ struct DocumentDetailView: View {
         .sheet(isPresented: $isNotesStudio) {
             TranscriptionReviewView(document: live)
         }
+        // Auto-summarize once per document visit when no sentence exists yet.
+        .task(id: live.id) {
+            guard live.aiSummary == nil, summaryPhase == .idle, liveHasOCR else { return }
+            await loadSummary(force: false)
+        }
+    }
+
+    // MARK: - AI summary header
+
+    private enum SummaryPhase: Equatable {
+        case idle
+        case generating
+        case failed
     }
 
     private var metaBar: some View {
@@ -257,6 +287,94 @@ struct DocumentDetailView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
+    }
+
+    /// Whether the AI summary card should render at all.
+    private var showsSummaryHeader: Bool {
+        live.aiSummary != nil || summaryPhase == .generating
+            || (summaryPhase == .failed && liveHasOCR)
+    }
+
+    private var liveHasOCR: Bool {
+        !(live.ocrText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+    }
+
+    /// Runs generation through the store and settles the local phase. The
+    /// store deduplicates against already-stored summaries unless forced.
+    private func loadSummary(force: Bool) async {
+        summaryPhase = .generating
+        let updated = await store.generateSummary(for: live, force: force)
+        withAnimation(Theme.soft) {
+            summaryPhase = updated?.aiSummary != nil ? .idle : .failed
+        }
+        Haptics.selection()
+    }
+
+    /// Amber sparkle card pinned above the reader: finished sentence,
+    /// scanning-beam while generating, retry pill when the call failed.
+    @ViewBuilder
+    private var summaryHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Theme.amberBright)
+
+                Text("AI SUMMARY")
+                    .font(Theme.mono(.caption2, weight: .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Theme.textTertiary)
+
+                Spacer(minLength: 0)
+
+                if summaryPhase == .generating {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(Theme.amber)
+                } else if summaryPhase == .failed {
+                    Button {
+                        Haptics.selection()
+                        Task { await loadSummary(force: true) }
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.amberBright)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background { Capsule().fill(Theme.amber.opacity(0.14)) }
+                    }
+                    .buttonStyle(PressableStyle())
+                }
+            }
+
+            switch summaryPhase {
+            case .generating:
+                Text("Reading your scan…")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Theme.textTertiary)
+            case .failed:
+                Text("Couldn’t generate a summary for this scan.")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Theme.textTertiary)
+            case .idle:
+                Text(live.aiSummary ?? "")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.surface)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Theme.hairline, lineWidth: 1)
+        }
+        // Scanner light sweeps the card while the sentence is being written.
+        .scanSweep(active: summaryPhase == .generating)
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: - In-document search
