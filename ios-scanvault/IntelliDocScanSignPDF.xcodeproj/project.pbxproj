@@ -520,7 +520,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -560,7 +560,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -583,7 +583,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -605,7 +605,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -625,7 +625,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -645,7 +645,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -660,7 +660,7 @@
 		XXA138AE0DFC2512AA8D29XX /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.scanvaultwidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.scanvaultwidget;
 				SDKROOT = iphoneos;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -683,7 +683,7 @@
 		XXACE77DB5BEB386AB34EFXX /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.scanvaultwidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.IntelliDoc.scanvaultwidget;
 				SDKROOT = iphoneos;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
