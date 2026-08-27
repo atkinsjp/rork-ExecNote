@@ -62,6 +62,9 @@ struct FolderCard: View {
             }
             .padding(14)
             .frame(height: 138, alignment: .topLeading)
+            // Guarantees the whole tile — not just label text — registers taps,
+            // so a single tap always opens the folder.
+            .contentShape(.rect(cornerRadius: 22, style: .continuous))
             .background(alignment: .bottom) {
                 LinearGradient(
                     colors: [folder.tint.opacity(isPulsing ? 0.30 : 0.13), .clear],

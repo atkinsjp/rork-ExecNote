@@ -3,18 +3,28 @@
 //  IntelliDocScanSignPDF
 //
 
+import PhotosUI
 import SwiftUI
+import UIKit
 
 /// Contents of a single folder. Folders marked private stay sealed until the
 /// user clears a Face ID / passcode check.
 struct FolderDetailView: View {
     @Environment(VaultStore.self) private var store
     @Environment(VaultLockManager.self) private var locks
+    @Environment(ScannerManager.self) private var scanner
     @Environment(\.dismiss) private var dismiss
 
     let folder: AppFolder
 
     @State private var isEditing = false
+
+    // Upload flow — camera capture and photo import preset to this folder.
+    @State private var isUploading = false
+    @State private var isShowingCamera = false
+    @State private var isImportingPhotos = false
+    @State private var isShowingReview = false
+    @State private var photoSelection: [PhotosPickerItem] = []
 
     private var isUnlocked: Bool {
         !locks.isLocked(folder)
@@ -38,22 +48,161 @@ struct FolderDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isEditing = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
+                HStack(spacing: 12) {
+                    Button {
+                        Haptics.selection()
+                        isUploading = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(Color(hex: "1A1206"))
+                            .frame(width: 32, height: 32)
+                            .background { Circle().fill(Theme.amber) }
+                            .shadow(color: Theme.amber.opacity(0.35), radius: 8, y: 3)
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel("Add scan to \(folder.name)")
+
+                    Button {
+                        isEditing = true
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Theme.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .background { Circle().fill(Theme.surfaceHigh) }
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel("Folder settings")
                 }
-                .accessibilityLabel("Folder settings")
             }
         }
         .toolbarBackground(Theme.ink, for: .navigationBar)
         .sheet(isPresented: $isEditing) {
             FolderEditorSheet(existing: folder)
         }
+        .confirmationDialog(
+            "Add to “\(folder.name)”",
+            isPresented: $isUploading,
+            titleVisibility: .visible
+        ) {
+            Button {
+                startCameraCapture()
+            } label: {
+                Label("Scan with Camera", systemImage: "doc.viewfinder")
+            }
+            Button {
+                isImportingPhotos = true
+            } label: {
+                Label("Import from Photos", systemImage: "photo.on.rectangle")
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("New pages are filed straight into this folder.")
+        }
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            DocumentCameraView(
+                onFinish: { images in
+                    scanner.finish(with: images, source: .camera)
+                    isShowingCamera = false
+                    isShowingReview = true
+                },
+                onCancel: {
+                    scanner.cancel()
+                    isShowingCamera = false
+                },
+                onError: { error in
+                    scanner.fail(error)
+                    isShowingCamera = false
+                }
+            )
+            .ignoresSafeArea()
+        }
+        .fullScreenCover(isPresented: $isShowingReview) {
+            ScanReviewView(presetFolderId: folder.id) { _ in
+                isShowingReview = false
+                Haptics.success()
+            }
+        }
+        .photosPicker(
+            isPresented: $isImportingPhotos,
+            selection: $photoSelection,
+            maxSelectionCount: 12,
+            matching: .images
+        )
+        .onChange(of: photoSelection) { _, items in
+            guard !items.isEmpty else { return }
+            Task { await importPhotos(items) }
+        }
         .task {
             guard locks.isLocked(folder) else { return }
             await unlock()
         }
+    }
+
+    // MARK: - Upload
+
+    /// Prominent upload entry shown above the document list.
+    private var uploadRow: some View {
+        Button {
+            Haptics.selection()
+            isUploading = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.and.arrow.up.fill")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.amber)
+                    .frame(width: 36, height: 36)
+                    .background {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Theme.amber.opacity(0.14))
+                    }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Upload to this folder")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text("Scan or import straight into \(folder.name)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(Theme.amber)
+            }
+            .padding(14)
+            .cardSurface(cornerRadius: 20)
+        }
+        .buttonStyle(PressableStyle(scale: 0.98))
+        .accessibilityLabel("Upload documents into \(folder.name)")
+    }
+
+    private func startCameraCapture() {
+        Haptics.impact(.light)
+        scanner.reset()
+        if scanner.isDocumentCameraAvailable {
+            scanner.beginCapture()
+            isShowingCamera = true
+        } else {
+            isImportingPhotos = true
+        }
+    }
+
+    private func importPhotos(_ items: [PhotosPickerItem]) async {
+        var images: [UIImage] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        photoSelection = []
+        guard !images.isEmpty else { return }
+        scanner.load(images, source: .photoImport)
+        isShowingReview = true
     }
 
     // MARK: - Locked state
@@ -116,6 +265,7 @@ struct FolderDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 summary
+                uploadRow
 
                 if contents.isEmpty {
                     VaultEmptyState(

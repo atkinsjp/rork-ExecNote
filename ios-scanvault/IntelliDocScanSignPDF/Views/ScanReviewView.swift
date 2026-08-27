@@ -15,6 +15,10 @@ struct ScanReviewView: View {
 
     let onFiled: (FiledScan) -> Void
 
+    /// Folder preselected in the "Save & File" sheet — used when a capture is
+    /// started from inside a folder, so pages land where the user is standing.
+    var presetFolderId: String? = nil
+
     @State private var selection: UUID?
     @State private var isFiling = false
     @State private var isSaving = false
@@ -75,7 +79,7 @@ struct ScanReviewView: View {
             SaveAndFileSheet(
                 pageCount: scanner.pages.count,
                 initialTitle: chosenName ?? classification?.suggestedNames.first,
-                initialFolderId: appliedFolderId ?? suggestedFolderId
+                initialFolderId: presetFolderId ?? appliedFolderId ?? suggestedFolderId
             ) { title, folderId in
                 isFiling = false
                 Task { await file(title: title, folderId: folderId) }

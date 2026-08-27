@@ -3,6 +3,7 @@
 //  IntelliDocScanSignPDF
 //
 
+import AuthenticationServices
 import AppIntents
 import SwiftUI
 
@@ -11,6 +12,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(VaultStore.self) private var store
     @Environment(SubscriptionManager.self) private var subscriptions
+    @Environment(AccountService.self) private var account
     @Environment(\.dismiss) private var dismiss
 
     @AppStorage(AppearanceMode.storageKey) private var appearanceRaw = AppearanceMode.system.rawValue
@@ -19,6 +21,7 @@ struct SettingsView: View {
     @State private var showingTerms = false
     @State private var showingLicenses = false
     @State private var showingDataManagement = false
+    @State private var isConfirmingSignOut = false
 
     private var mode: AppearanceMode {
         AppearanceMode(rawValue: appearanceRaw) ?? .system
@@ -33,6 +36,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 22) {
                         appearanceSection
                         subscriptionSection
+                        accountSection
                         siriSection
                         legalSection
                         aboutSection
@@ -63,6 +67,19 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(mode.colorScheme)
+        .task { await account.refreshCredentialState() }
+        .confirmationDialog(
+            "Sign out of your Apple account?",
+            isPresented: $isConfirmingSignOut,
+            titleVisibility: .visible
+        ) {
+            Button("Sign Out", role: .destructive) {
+                account.signOut()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Your scans stay safely on this device.")
+        }
         .sheet(isPresented: $showingPrivacyPolicy) {
             LegalDocumentView(kind: .privacyPolicy)
         }
@@ -301,6 +318,114 @@ struct SettingsView: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
+    // MARK: - Account
+
+    /// Sign in with Apple identity + logout. Scans never leave the device
+    /// through this — the account anchors purchases and future cloud sync.
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "ACCOUNT")
+
+            if account.isSignedIn {
+                signedInCard
+            } else {
+                signInCard
+            }
+
+            Text(account.isSignedIn
+                 ? "Signed in with Apple. Your scans remain stored on this device only."
+                 : "Uses your Apple ID privately — we never see your password, and scans stay on this device.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Theme.textTertiary)
+        }
+    }
+
+    private var signInCard: some View {
+        VStack(spacing: 12) {
+            SignInWithAppleButton(.signIn) { request in
+                request.requestedScopes = [.fullName, .email]
+            } onCompletion: { result in
+                account.handle(result)
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 48)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background {
+                // White mount so the standard black button reads on the
+                // graphite surface, matching the system look.
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color.white)
+                    .padding(-5)
+            }
+        }
+    }
+
+    private var signedInCard: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Image(systemName: "person.crop.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundStyle(Theme.amber)
+                    .frame(width: 40, height: 40)
+                    .background { Circle().fill(Theme.amber.opacity(0.14)) }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(account.displayName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Theme.textPrimary)
+                        .lineLimit(1)
+                    Text(account.email ?? "Apple account")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textTertiary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "checkmark.shield.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(hex: "3FB0A0"))
+            }
+            .padding(14)
+
+            Rectangle()
+                .fill(Theme.hairline)
+                .frame(height: 1)
+                .padding(.horizontal, 14)
+
+            Button {
+                Haptics.selection()
+                isConfirmingSignOut = true
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color(hex: "E2664F"))
+                        .frame(width: 28, height: 28)
+                        .background { Circle().fill(Color(hex: "E2664F").opacity(0.12)) }
+
+                    Text("Sign Out")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color(hex: "E2664F"))
+
+                    Spacer()
+                }
+                .padding(14)
+                .contentShape(.rect)
+            }
+            .buttonStyle(PressableStyle(scale: 0.99))
+            .accessibilityLabel("Sign out of your Apple account")
+        }
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Theme.surface)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Theme.hairline, lineWidth: 1)
+        }
+    }
+
     // MARK: - Siri & Shortcuts
 
     private var siriSection: some View {
@@ -440,5 +565,6 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environment(VaultStore.mock())
+        .environment(AccountService.shared)
         .preferredColorScheme(.dark)
 }

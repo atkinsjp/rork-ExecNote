@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var scanner = ScannerManager()
     @State private var subscriptions = SubscriptionManager.shared
     @State private var locks = VaultLockManager.shared
+    @State private var account = AccountService.shared
 
     /// Landing → onboarding → live vault. Returning users land straight in.
     @State private var launchPhase: LaunchPhase = OnboardingPaywallCoordinator.hasCompletedBefore ? .app : .landing
@@ -28,6 +29,7 @@ struct ContentView: View {
             .environment(scanner)
             .environment(subscriptions)
             .environment(locks)
+            .environment(account)
             .environment(DeepLinkRouter.shared)
             .preferredColorScheme((AppearanceMode(rawValue: appearanceRaw) ?? .light).colorScheme)
             .task {

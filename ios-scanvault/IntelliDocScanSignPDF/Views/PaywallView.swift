@@ -13,8 +13,13 @@ import SwiftUI
 /// storefront work with zero network or App Store Connect dependencies.
 struct PaywallView: View {
     @Environment(SubscriptionManager.self) private var subscriptions
+    @Environment(\.dismiss) private var dismiss
 
     var compact = false
+
+    /// Sheet presentations get an explicit ✕ for an easy exit; the onboarding
+    /// step embeds this view inline and sets it to false (it has its own skip).
+    var showsCloseButton = true
 
     @State private var selectedPlanID: String = PlanPresentation.mockCatalog[0].id
     @State private var presentingLegalKind: LegalDocumentKind?
@@ -51,6 +56,25 @@ struct PaywallView: View {
         // Mandated legal surfaces open in-app (5.1.1).
         .sheet(item: $presentingLegalKind) { kind in
             LegalDocumentView(kind: kind)
+        }
+        .overlay(alignment: .topTrailing) {
+            if showsCloseButton {
+                Button {
+                    Haptics.selection()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Theme.textSecondary)
+                        .frame(width: 34, height: 34)
+                        .background { Circle().fill(Theme.surfaceHigh) }
+                        .overlay { Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1) }
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("Close")
+                .padding(.top, 8)
+                .padding(.trailing, 16)
+            }
         }
         .onAppear {
             if !subscriptions.plans.contains(where: { $0.id == selectedPlanID }) {

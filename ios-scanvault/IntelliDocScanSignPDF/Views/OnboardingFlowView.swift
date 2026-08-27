@@ -453,7 +453,7 @@ private struct PaywallStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            PaywallView()
+            PaywallView(showsCloseButton: false)
                 .frame(maxHeight: .infinity)
 
             Button {
