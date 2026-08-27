@@ -3,10 +3,11 @@
 //  IntelliDocScanSignPDF
 //
 
+import AuthenticationServices
 import SwiftUI
 
-/// Full-screen 4-step conversion flow:
-/// hook → interactive redaction demo → persona selector → paywall.
+/// Full-screen 5-step flow:
+/// hook → interactive redaction demo → persona selector → account → paywall.
 struct OnboardingFlowView: View {
     @Environment(SubscriptionManager.self) private var subscriptions
 
@@ -34,6 +35,8 @@ struct OnboardingFlowView: View {
                             onSelect: coordinator.select,
                             onContinue: coordinator.advance
                         )
+                    case .account:
+                        AccountStep(onContinue: coordinator.advance)
                     case .paywall:
                         PaywallStep(
                             onPurchase: {
@@ -442,7 +445,117 @@ private struct PersonaRow: View {
     }
 }
 
-// MARK: - Step 4: Paywall wrapper
+// MARK: - Step 4: Account
+
+/// One-tap Sign in with Apple — anchors the user's identity before the
+/// purchase decision, with a friction-free skip for privacy-first users.
+private struct AccountStep: View {
+    let onContinue: () -> Void
+
+    @Environment(AccountService.self) private var account
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 14)
+
+            VStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Theme.amber.opacity(0.12))
+                        .frame(width: 72, height: 72)
+                    Image(systemName: account.isSignedIn ? "checkmark.seal.fill" : "person.crop.circle.badge.shield.checkmark")
+                        .font(.system(size: 30, weight: .medium))
+                        .foregroundStyle(Theme.amber)
+                        .symbolEffect(.bounce, value: account.isSignedIn)
+                }
+
+                Text(account.isSignedIn ? "You're in." : "Claim your vault.")
+                    .font(Theme.display(.title2))
+                    .foregroundStyle(Theme.textPrimary)
+
+                if account.isSignedIn {
+                    Text("Signed in as \(account.displayName). Your Apple ID never sees your documents.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textSecondary)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text("Sign in with Apple to anchor your purchase across reinstalls. Everything else stays on this device.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding(.horizontal, 30)
+
+            Spacer(minLength: 24)
+
+            if account.isSignedIn {
+                Button {
+                    Haptics.impact(.medium)
+                    onContinue()
+                } label: {
+                    Label("Continue", systemImage: "arrow.right")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color(hex: "1A1206"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background {
+                            Capsule().fill(
+                                LinearGradient(colors: [Theme.amberBright, Theme.amber], startPoint: .top, endPoint: .bottom)
+                            )
+                        }
+                }
+                .buttonStyle(PressableStyle(scale: 0.97))
+                .padding(.horizontal, 26)
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            } else {
+                SignInWithAppleButton(.continue) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    account.handle(result)
+                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: 52)
+                .clipShape(Capsule())
+                .background {
+                    // White mount so the standard black button reads on the
+                    // graphite backdrop, matching the Settings styling.
+                    Capsule().fill(Color.white).padding(-5)
+                }
+                .buttonStyle(PressableStyle(scale: 0.97))
+                .padding(.horizontal, 26)
+                .transition(.opacity)
+
+                Button {
+                    Haptics.selection()
+                    onContinue()
+                } label: {
+                    Text("Skip for now")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Theme.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("Skip sign in for now")
+            }
+
+            Text("Scans never touch the cloud without your say-so.")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Theme.textTertiary)
+                .padding(.top, 8)
+                .padding(.bottom, 30)
+        }
+        .animation(Theme.flight, value: account.isSignedIn)
+        .onChange(of: account.isSignedIn) { _, isSignedIn in
+            if isSignedIn {
+                Haptics.success()
+            }
+        }
+    }
+}
+
+// MARK: - Step 5: Paywall wrapper
 
 private struct PaywallStep: View {
     let onPurchase: () -> Void

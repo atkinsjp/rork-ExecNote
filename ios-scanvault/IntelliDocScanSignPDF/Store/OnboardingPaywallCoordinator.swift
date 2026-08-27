@@ -71,7 +71,7 @@ nonisolated enum OnboardingPersona: String, CaseIterable, Codable, Sendable, Ide
 
 // MARK: - Coordinator
 
-/// Drives the 4-step hook → demo → persona → paywall conversion flow.
+/// Drives the 5-step hook → demo → persona → account → paywall flow.
 @MainActor
 @Observable
 final class OnboardingPaywallCoordinator {
@@ -79,6 +79,7 @@ final class OnboardingPaywallCoordinator {
         case hook
         case demo
         case persona
+        case account
         case paywall
     }
 
