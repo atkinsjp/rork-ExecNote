@@ -23,11 +23,17 @@ final class AccountService {
         static let userID = "account.appleUserID"
         static let name = "account.fullName"
         static let email = "account.appleEmail"
+        static let signOutLock = "account.signOutLock"
     }
 
     private(set) var appleUserID: String?
     private(set) var fullName: String?
     private(set) var email: String?
+
+    /// Set when the user signs out from Settings. While true the vault stays
+    /// behind the Apple sign-in gate until they sign back in — a deliberate
+    /// barrier after an explicit logout (data itself never leaves the device).
+    private(set) var requiresSignIn: Bool
 
     var isSignedIn: Bool { appleUserID != nil }
 
@@ -45,6 +51,7 @@ final class AccountService {
         appleUserID = defaults.string(forKey: Keys.userID)
         fullName = defaults.string(forKey: Keys.name)
         email = defaults.string(forKey: Keys.email)
+        requiresSignIn = defaults.bool(forKey: Keys.signOutLock)
     }
 
     // MARK: - Authorization
@@ -66,6 +73,7 @@ final class AccountService {
             if let email = credential.email { self.email = email }
 
             persist()
+            setSignOutLock(false)
             Haptics.success()
 
         case .failure:
@@ -88,11 +96,12 @@ final class AccountService {
         }
     }
 
-    /// Forgets the identity inside the vault. Apple offers no programmatic
-    /// sign-out of the device-level Apple ID itself — scans stay on device.
+    /// Forgets the identity inside the vault AND seals it: reopening requires
+    /// signing back in with Apple. Scans and folders stay untouched on device.
     func signOut() {
         guard isSignedIn else { return }
         clearSession()
+        setSignOutLock(true)
         Haptics.selection()
     }
 
@@ -101,6 +110,11 @@ final class AccountService {
         fullName = nil
         email = nil
         persist()
+    }
+
+    private func setSignOutLock(_ locked: Bool) {
+        withAnimation(Theme.flight) { requiresSignIn = locked }
+        UserDefaults.standard.set(locked, forKey: Keys.signOutLock)
     }
 
     private func persist() {

@@ -25,6 +25,7 @@ struct ContentView: View {
     var body: some View {
         launchRoot
             .animation(Theme.flight, value: locks.isAppSealed)
+            .animation(Theme.flight, value: account.requiresSignIn)
             .environment(store)
             .environment(scanner)
             .environment(subscriptions)
@@ -98,7 +99,12 @@ struct ContentView: View {
                 removal: .opacity
             ))
         case .app:
-            if locks.isAppSealed {
+            if account.requiresSignIn {
+                // Explicit sign-out seals the vault behind Apple sign-in;
+                // data stays on device but the door needs a key again.
+                SignInGateView()
+                    .transition(.opacity)
+            } else if locks.isAppSealed {
                 VaultGateView()
                     .transition(.opacity)
             } else {

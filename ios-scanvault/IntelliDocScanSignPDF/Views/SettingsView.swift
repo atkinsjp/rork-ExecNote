@@ -75,10 +75,12 @@ struct SettingsView: View {
         ) {
             Button("Sign Out", role: .destructive) {
                 account.signOut()
+                // Drop straight back onto the vault's sign-in gate.
+                dismiss()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Your scans stay safely on this device.")
+            Text("You'll need to sign back in with Apple to reopen your vault. Your scans stay safely on this device.")
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
             LegalDocumentView(kind: .privacyPolicy)
@@ -388,10 +390,35 @@ struct SettingsView: View {
             }
             .padding(14)
 
+            // Prominent heads-up so sealing on sign-out is never a surprise.
+            Label("Signing out locks your vault — sign back in with Apple to reopen it.", systemImage: "lock.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Theme.amber)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Theme.amber.opacity(0.10))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Theme.amber.opacity(0.35), lineWidth: 1)
+                }
+                .padding(.horizontal, 14)
+                .padding(.top, 10)
+
+            Text("✓ Your scans stay safely on this device.")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color(hex: "3FB0A0"))
+                .padding(.horizontal, 14)
+                .padding(.top, 8)
+
             Rectangle()
                 .fill(Theme.hairline)
                 .frame(height: 1)
                 .padding(.horizontal, 14)
+                .padding(.top, 10)
 
             Button {
                 Haptics.selection()
