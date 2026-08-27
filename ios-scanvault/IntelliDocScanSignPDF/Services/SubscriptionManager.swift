@@ -39,7 +39,7 @@ nonisolated enum ProFeature: String, CaseIterable, Sendable, Identifiable {
 /// Display metadata for a pricing tier. Fully populated in mock mode so
 /// SwiftUI previews render without network or App Store Connect.
 nonisolated struct PlanPresentation: Identifiable, Hashable, Sendable {
-    enum Cadence: String, Sendable { case annual, monthly, lifetime }
+    enum Cadence: String, Sendable { case annual, monthly }
 
     let id: String
     let cadence: Cadence
@@ -68,15 +68,6 @@ nonisolated struct PlanPresentation: Identifiable, Hashable, Sendable {
             badge: nil,
             trialDays: nil
         ),
-        PlanPresentation(
-            id: "app.rork.scanvault.pro.lifetime",
-            cadence: .lifetime,
-            title: "Lifetime",
-            price: "$79.99",
-            subtitle: "one-time unlock",
-            badge: "Pay once",
-            trialDays: nil
-        ),
     ]
 }
 
@@ -96,7 +87,6 @@ final class SubscriptionManager {
     static let productIDs = [
         "app.rork.scanvault.pro.annual",
         "app.rork.scanvault.pro.monthly",
-        "app.rork.scanvault.pro.lifetime",
     ]
 
     /// True when no real StoreKit products are available; purchases resolve
@@ -286,7 +276,6 @@ nonisolated extension PlanPresentation.Cadence {
         switch self {
         case .annual: 0
         case .monthly: 1
-        case .lifetime: 2
         }
     }
 }

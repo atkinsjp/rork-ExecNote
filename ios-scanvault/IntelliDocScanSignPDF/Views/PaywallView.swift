@@ -174,7 +174,7 @@ struct PaywallView: View {
         case .trialFocused:
             "Start your free trial and try everything on this device — unlimited redaction, the multi-profile signature kit, and zero-knowledge cloud sync. Cancel anytime."
         case .lifetimeHighlight:
-            "Pay once, own it forever. Unlimited redaction, signature kits with cryptographic audit trails, and zero-knowledge cloud sync — no recurring fees, ever."
+            "Best value on paperwork. Unlimited redaction, signature kits with cryptographic audit trails, and zero-knowledge cloud sync — start free and cancel anytime."
         case .featureComparison:
             "Your paperwork never leaves this device. Pro unlocks unlimited redaction, e-signatures with SHA-256 audit trail, encrypted cross-device backup, and premium OCR quality."
         }
