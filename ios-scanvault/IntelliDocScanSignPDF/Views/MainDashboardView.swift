@@ -211,7 +211,7 @@ struct MainDashboardView: View {
                 proPill
                 cloudPill
             }
-            ScanLine()
+            ScanTicker()
         }
         .padding(.top, 6)
     }
@@ -742,19 +742,72 @@ enum VaultRoute: Hashable {
     case document(ScannedDocument)
 }
 
-// MARK: - Animated scan line
+// MARK: - Animated scan ticker
+//
+/// Home-header centerpiece: the amber beam glides across the strip, and every
+/// time it finishes a pass the freshly "filed" page slides away while the
+/// next document arrives from the right to take its turn under the light.
+/// Freezes a single static page when Reduce Motion is enabled.
 
-private struct ScanLine: View {
+private struct ScanTicker: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var sweep = false
+
+    /// Index of the demo page currently under the beam; cycles forever.
+    @State private var pageIndex = 0
+    /// Beam travel, 0 = parked off the leading edge, 1 = swept fully across.
+    @State private var beam: CGFloat = 0
 
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Theme.hairline)
-                    .frame(height: 2)
+                trackSurface
 
+                incomingPage
+                    .padding(.leading, 12)
+
+                beamLayer(width: proxy.size.width)
+
+                tickerLabel
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+            }
+        }
+        .frame(height: 72)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .task { await play() }
+    }
+
+    // MARK: Layers
+
+    /// Panel background mirroring the dashboard pill language.
+    private var trackSurface: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(Color.white.opacity(0.03))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+            }
+    }
+
+    /// One live page whose identity changes per completed sweep, driving the
+    /// slide-away / slide-in hand-off.
+    private var incomingPage: some View {
+        MiniScannedPage(variantIndex: pageIndex)
+            .id(pageIndex)
+            .transition(
+                .asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading)
+                        .combined(with: .offset(x: -34))
+                        .combined(with: .opacity)
+                )
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    /// The traveling amber scan light.
+    private func beamLayer(width: CGFloat) -> some View {
+        Color.clear
+            .overlay(alignment: .leading) {
                 Capsule()
                     .fill(
                         LinearGradient(
@@ -763,20 +816,115 @@ private struct ScanLine: View {
                             endPoint: .trailing
                         )
                     )
-                    .frame(width: proxy.size.width * 0.42, height: 2)
-                    .offset(x: sweep ? proxy.size.width * 0.58 : -proxy.size.width * 0.06)
-                    .shadow(color: Theme.amber.opacity(0.7), radius: 6)
-                    .opacity(reduceMotion ? 0.5 : 1)
+                    .frame(width: width * 0.42, height: 3)
+                    .shadow(color: Theme.amber.opacity(0.75), radius: 7)
+                    // Park fully clear of both edges so the silent rewind
+                    // between passes is never seen.
+                    .offset(x: -width * 0.45 + beam * width * 1.2)
             }
-            .frame(height: 2)
-            .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
-                    sweep = true
-                }
-            }
+            .opacity(reduceMotion ? 0 : 1)
+            .allowsHitTesting(false)
+    }
+
+    private var tickerLabel: some View {
+        VStack(alignment: .trailing, spacing: 3) {
+            Text(String(format: "DOC %02d", (pageIndex % 99) + 1))
+                .font(Theme.mono(.caption2, weight: .bold))
+                .foregroundStyle(Theme.amber)
+            Text("scan in progress")
+                .font(Theme.mono(.caption2))
+                .foregroundStyle(Theme.textTertiary)
         }
-        .frame(height: 2)
+        .padding(.trailing, 14)
+        .allowsHitTesting(false)
+    }
+
+    // MARK: Loop
+
+    /// Beam crosses (≈1.8s) → rest beat while the scanned page files itself
+    /// away and the next one slides in → repeat.
+    private func play() async {
+        guard !reduceMotion else { return }
+        try? await Task.sleep(for: .seconds(0.6))
+        while !Task.isCancelled {
+            withAnimation(.easeInOut(duration: 1.8)) { beam = 1 }
+            try? await Task.sleep(for: .seconds(1.82))
+
+            beam = 0 // instant rewind while parked offscreen
+            withAnimation(Theme.flight) { pageIndex += 1 }
+            try? await Task.sleep(for: .seconds(0.45))
+        }
+    }
+}
+
+/// A single miniature paper page with alternating "content", framed by two
+/// ghost sheets that suggest the rest of the stack waiting to be filed.
+private struct MiniScannedPage: View {
+    let variantIndex: Int
+
+    private static let variants: [[CGFloat]] = [
+        [0.82, 0.55, 0.90, 0.42],
+        [0.60, 0.86, 0.50, 0.72],
+        [0.92, 0.46, 0.68, 0.60],
+        [0.48, 0.74, 0.38, 0.84],
+    ]
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            // Waiting stack, peeking out bottom-right.
+            ghostSheet(Color(hex: "EAE4D6"))
+                .offset(x: 8, y: 5)
+            ghostSheet(Color(hex: "DDD5C2"))
+                .offset(x: 4, y: 2.5)
+
+            // The live page under the beam.
+            ZStack(alignment: .topLeading) {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color(hex: "FBF7EE"))
+
+                VStack(alignment: .leading, spacing: 5) {
+                    bar(fraction: 0.5, tint: Theme.amber.opacity(0.8), height: 4)
+                    ForEach(Array(contentBars.enumerated()), id: \.offset) { pair in
+                        bar(fraction: pair.element, tint: Color(hex: "CFC8B6"), height: 3)
+                    }
+                    Spacer(minLength: 0)
+                    filedChip
+                }
+                .padding(8)
+            }
+            .frame(width: 44, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .shadow(color: .black.opacity(0.22), radius: 5, y: 2)
+        }
+        .frame(width: 56, height: 64, alignment: .topLeading)
+    }
+
+    private var contentBars: [CGFloat] {
+        Array(Self.variants[variantIndex % Self.variants.count].dropFirst())
+    }
+
+    private func ghostSheet(_ color: Color) -> some View {
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+            .fill(color)
+            .frame(width: 44, height: 56)
+    }
+
+    private func bar(fraction: CGFloat, tint: Color, height: CGFloat) -> some View {
+        Capsule()
+            .fill(tint)
+            .frame(width: fraction * 28, height: height)
+    }
+
+    private var filedChip: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 5.5, weight: .bold))
+            Text("FILED")
+                .font(.system(size: 5.5, weight: .heavy))
+        }
+        .foregroundStyle(Color(hex: "2E8778"))
+        .padding(.init(top: 2, leading: 4, bottom: 2, trailing: 4))
+        .background { Capsule().fill(Color(hex: "3FB0A0").opacity(0.16)) }
     }
 }
 
