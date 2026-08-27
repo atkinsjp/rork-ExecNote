@@ -1,10 +1,14 @@
 {
+  "$schema": "https://rork.com/schema/rork.json",
   "apps": [
     {
-      "name": "ScanVault",
+      "name": "IntelliDoc",
       "path": "ios-scanvault",
-      "framework": "swift"
+      "framework": "swift",
+      "settings": {
+        "displayName": "IntelliDoc: Scan, Sign, PDF",
+        "iosBundleId": "com.atkinsmedia.intellidoc"
+      }
     }
-  ],
-  "$schema": "https://rork.com/schema/rork.json"
+  ]
 }

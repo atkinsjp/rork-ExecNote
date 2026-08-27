@@ -1,0 +1,757 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		XX70A6411A6EF53BF8ADA0XX /* IntelliDocScanSignPDFWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = XX0B5120F5C01004F13F8DXX /* IntelliDocScanSignPDFWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		105FC58A2E9EAD3200EA8BCF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 105FC5722E9EAD3100EA8BCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 105FC5792E9EAD3100EA8BCF;
+			remoteInfo = IntelliDocScanSignPDF;
+		};
+		105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 105FC5722E9EAD3100EA8BCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 105FC5792E9EAD3100EA8BCF;
+			remoteInfo = IntelliDocScanSignPDF;
+		};
+		XX565E54BDB3E640310B95XX /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 105FC5722E9EAD3100EA8BCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = XX34A7CB4FD5F34F541239XX;
+			remoteInfo = IntelliDocScanSignPDFWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		XX8618DA762832199DA68BXX /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				XX70A6411A6EF53BF8ADA0XX /* IntelliDocScanSignPDFWidget.appex in Embed Foundation Extensions */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "Embed Foundation Extensions";
+			dstPath = "";
+			dstSubfolderSpec = 13;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		105FC57A2E9EAD3100EA8BCF /* IntelliDocScanSignPDF.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IntelliDocScanSignPDF.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		105FC5892E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntelliDocScanSignPDFTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		105FC5932E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntelliDocScanSignPDFUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		XX0B5120F5C01004F13F8DXX /* IntelliDocScanSignPDFWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = IntelliDocScanSignPDFWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		XXF674877E8BB3C85FB128XX /* Exceptions for "ScanVaultWidget" folder in "IntelliDocScanSignPDFWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = XX34A7CB4FD5F34F541239XX /* IntelliDocScanSignPDFWidget */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		105FC57C2E9EAD3100EA8BCF /* IntelliDocScanSignPDF */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntelliDocScanSignPDF;
+			sourceTree = "<group>";
+		};
+		105FC58C2E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntelliDocScanSignPDFTests;
+			sourceTree = "<group>";
+		};
+		105FC5962E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IntelliDocScanSignPDFUITests;
+			sourceTree = "<group>";
+		};
+		XX5C4A7E1D2F3B8A9C0D1EXX /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		XXE40D532FDCC100765EC9XX /* ScanVaultWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScanVaultWidget;
+			sourceTree = "<group>";
+			exceptions = (
+				XXF674877E8BB3C85FB128XX /* Exceptions for "ScanVaultWidget" folder in "IntelliDocScanSignPDFWidget" target */,
+			);
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		105FC5772E9EAD3100EA8BCF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC5862E9EAD3200EA8BCF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC5902E9EAD3200EA8BCF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		XX8783DFF771B55EAFE2A8XX /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		105FC5712E9EAD3100EA8BCF = {
+			isa = PBXGroup;
+			children = (
+				105FC57C2E9EAD3100EA8BCF /* IntelliDocScanSignPDF */,
+				105FC58C2E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests */,
+				105FC5962E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests */,
+				105FC57B2E9EAD3100EA8BCF /* Products */,
+				XXE40D532FDCC100765EC9XX /* ScanVaultWidget */,
+				XX5C4A7E1D2F3B8A9C0D1EXX /* Shared */,
+			);
+			sourceTree = "<group>";
+		};
+		105FC57B2E9EAD3100EA8BCF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				105FC57A2E9EAD3100EA8BCF /* IntelliDocScanSignPDF.app */,
+				105FC5892E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests.xctest */,
+				105FC5932E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests.xctest */,
+				XX0B5120F5C01004F13F8DXX /* IntelliDocScanSignPDFWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		105FC5792E9EAD3100EA8BCF /* IntelliDocScanSignPDF */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDF" */;
+			buildPhases = (
+				105FC5762E9EAD3100EA8BCF /* Sources */,
+				105FC5772E9EAD3100EA8BCF /* Frameworks */,
+				105FC5782E9EAD3100EA8BCF /* Resources */,
+				XX8618DA762832199DA68BXX /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				XXC4B1A9881A9844DB8C0DXX /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				105FC57C2E9EAD3100EA8BCF /* IntelliDocScanSignPDF */,
+				XX5C4A7E1D2F3B8A9C0D1EXX /* Shared */,
+			);
+			name = IntelliDocScanSignPDF;
+			packageProductDependencies = (
+			);
+			productName = IntelliDocScanSignPDF;
+			productReference = 105FC57A2E9EAD3100EA8BCF /* IntelliDocScanSignPDF.app */;
+			productType = "com.apple.product-type.application";
+		};
+		105FC5882E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFTests" */;
+			buildPhases = (
+				105FC5852E9EAD3200EA8BCF /* Sources */,
+				105FC5862E9EAD3200EA8BCF /* Frameworks */,
+				105FC5872E9EAD3200EA8BCF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				105FC58B2E9EAD3200EA8BCF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				105FC58C2E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests */,
+			);
+			name = IntelliDocScanSignPDFTests;
+			packageProductDependencies = (
+			);
+			productName = IntelliDocScanSignPDFTests;
+			productReference = 105FC5892E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		105FC5922E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFUITests" */;
+			buildPhases = (
+				105FC58F2E9EAD3200EA8BCF /* Sources */,
+				105FC5902E9EAD3200EA8BCF /* Frameworks */,
+				105FC5912E9EAD3200EA8BCF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				105FC5952E9EAD3200EA8BCF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				105FC5962E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests */,
+			);
+			name = IntelliDocScanSignPDFUITests;
+			packageProductDependencies = (
+			);
+			productName = IntelliDocScanSignPDFUITests;
+			productReference = 105FC5932E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		XX34A7CB4FD5F34F541239XX /* IntelliDocScanSignPDFWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = XX9EE8A4A97A65A5C2ACFAXX /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFWidget" */;
+			buildPhases = (
+				XXF8F81B061167F6594C6FXX /* Sources */,
+				XX8783DFF771B55EAFE2A8XX /* Frameworks */,
+				XXEA075FC586BDE3835309XX /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IntelliDocScanSignPDFWidget;
+			productName = IntelliDocScanSignPDFWidget;
+			productReference = XX0B5120F5C01004F13F8DXX /* IntelliDocScanSignPDFWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+			fileSystemSynchronizedGroups = (
+				XXE40D532FDCC100765EC9XX /* ScanVaultWidget */,
+				XX5C4A7E1D2F3B8A9C0D1EXX /* Shared */,
+			);
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		105FC5722E9EAD3100EA8BCF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					105FC5792E9EAD3100EA8BCF = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					105FC5882E9EAD3200EA8BCF = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 105FC5792E9EAD3100EA8BCF;
+					};
+					105FC5922E9EAD3200EA8BCF = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 105FC5792E9EAD3100EA8BCF;
+					};
+				};
+			};
+			buildConfigurationList = 105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "IntelliDocScanSignPDF" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 105FC5712E9EAD3100EA8BCF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 105FC57B2E9EAD3100EA8BCF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				105FC5792E9EAD3100EA8BCF /* IntelliDocScanSignPDF */,
+				105FC5882E9EAD3200EA8BCF /* IntelliDocScanSignPDFTests */,
+				105FC5922E9EAD3200EA8BCF /* IntelliDocScanSignPDFUITests */,
+				XX34A7CB4FD5F34F541239XX /* IntelliDocScanSignPDFWidget */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		105FC5782E9EAD3100EA8BCF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC5872E9EAD3200EA8BCF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC5912E9EAD3200EA8BCF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		XXEA075FC586BDE3835309XX /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		105FC5762E9EAD3100EA8BCF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC5852E9EAD3200EA8BCF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		105FC58F2E9EAD3200EA8BCF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		XXF8F81B061167F6594C6FXX /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		105FC58B2E9EAD3200EA8BCF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 105FC5792E9EAD3100EA8BCF /* IntelliDocScanSignPDF */;
+			targetProxy = 105FC58A2E9EAD3200EA8BCF /* PBXContainerItemProxy */;
+		};
+		105FC5952E9EAD3200EA8BCF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 105FC5792E9EAD3100EA8BCF /* IntelliDocScanSignPDF */;
+			targetProxy = 105FC5942E9EAD3200EA8BCF /* PBXContainerItemProxy */;
+		};
+		XXC4B1A9881A9844DB8C0DXX /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = XX34A7CB4FD5F34F541239XX /* IntelliDocScanSignPDFWidget */;
+			targetProxy = XX565E54BDB3E640310B95XX /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		105FC59B2E9EAD3200EA8BCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		105FC59C2E9EAD3200EA8BCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		105FC59E2E9EAD3200EA8BCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = IntelliDocScanSignPDF.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "IntelliDoc uses the camera to scan paper documents into sharp, multi-page PDFs.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "IntelliDoc uses Face ID to unlock your document vault and folders marked as private.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "IntelliDoc can import existing photos of documents and turn them into PDFs.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				INFOPLIST_KEY_CFBundleDisplayName = "IntelliDoc: Scan, Sign, PDF";
+			};
+			name = Debug;
+		};
+		105FC59F2E9EAD3200EA8BCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = IntelliDocScanSignPDF.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "IntelliDoc uses the camera to scan paper documents into sharp, multi-page PDFs.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "IntelliDoc uses Face ID to unlock your document vault and folders marked as private.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "IntelliDoc can import existing photos of documents and turn them into PDFs.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				INFOPLIST_KEY_CFBundleDisplayName = "IntelliDoc: Scan, Sign, PDF";
+			};
+			name = Release;
+		};
+		105FC5A12E9EAD3200EA8BCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IntelliDocScanSignPDF.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/IntelliDocScanSignPDF";
+			};
+			name = Debug;
+		};
+		105FC5A22E9EAD3200EA8BCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IntelliDocScanSignPDF.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/IntelliDocScanSignPDF";
+			};
+			name = Release;
+		};
+		105FC5A42E9EAD3200EA8BCF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IntelliDocScanSignPDF;
+			};
+			name = Debug;
+		};
+		105FC5A52E9EAD3200EA8BCF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = IntelliDocScanSignPDF;
+			};
+			name = Release;
+		};
+		XXA138AE0DFC2512AA8D29XX /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.scanvaultwidget;
+				SDKROOT = iphoneos;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScanVaultWidget/Info.plist;
+				SWIFT_VERSION = 5.0;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = IntelliDocScanSignPDFWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				INFOPLIST_KEY_CFBundleDisplayName = IntelliDoc;
+			};
+			name = Debug;
+		};
+		XXACE77DB5BEB386AB34EFXX /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = com.atkinsmedia.intellidoc.scanvaultwidget;
+				SDKROOT = iphoneos;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScanVaultWidget/Info.plist;
+				SWIFT_VERSION = 5.0;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = IntelliDocScanSignPDFWidget.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				INFOPLIST_KEY_CFBundleDisplayName = IntelliDoc;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		105FC5752E9EAD3100EA8BCF /* Build configuration list for PBXProject "IntelliDocScanSignPDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				105FC59B2E9EAD3200EA8BCF /* Debug */,
+				105FC59C2E9EAD3200EA8BCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		105FC59D2E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				105FC59E2E9EAD3200EA8BCF /* Debug */,
+				105FC59F2E9EAD3200EA8BCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		105FC5A02E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				105FC5A12E9EAD3200EA8BCF /* Debug */,
+				105FC5A22E9EAD3200EA8BCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		105FC5A32E9EAD3200EA8BCF /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				105FC5A42E9EAD3200EA8BCF /* Debug */,
+				105FC5A52E9EAD3200EA8BCF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		XX9EE8A4A97A65A5C2ACFAXX /* Build configuration list for PBXNativeTarget "IntelliDocScanSignPDFWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				XXA138AE0DFC2512AA8D29XX /* Debug */,
+				XXACE77DB5BEB386AB34EFXX /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 105FC5722E9EAD3100EA8BCF /* Project object */;
+}
