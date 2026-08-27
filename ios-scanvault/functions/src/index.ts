@@ -152,6 +152,9 @@ export const cleanupOrphanedFiles = onSchedule(
 interface ShareRequest {
   /** Firestore document id (without user prefix — caller scoped by auth uid). */
   documentId: string;
+  /** Vault-owner scope used when the caller has no Firebase Auth session.
+   *  Device clients sync under a local vault id; validated below. */
+  userId?: string;
   /** Required password; recipients must know it to download. */
   password?: string;
   /** Link lifetime in hours: 24 or 168 (7 days). Defaults to 24. */
@@ -161,20 +164,28 @@ interface ShareRequest {
 const SHARE_TOKEN_BYTES = 32;
 
 export const generateSecureShareLink = onCall(async (request) => {
-  // Require an authenticated app user (anonymous accounts count).
+  // Accept an authenticated app user OR an explicit vault-owner scope that
+  // passes format validation (device clients sync without Firebase Auth).
+  // Either way, links stay protected by the unguessable capability token,
+  // optional scrypt password and hard expiry checked at download time.
   const uid = request.auth?.uid;
-  if (!uid) {
+  const data = request.data as ShareRequest;
+  const scopedUserId =
+    typeof data?.userId === "string" && /^[A-Za-z0-9._@+%-]{1,64}$/.test(data.userId)
+      ? data.userId
+      : null;
+  if (!uid && !scopedUserId) {
     throw new HttpsError("unauthenticated", "Sign in before creating share links.");
   }
 
-  const data = request.data as ShareRequest;
   const documentId = String(data?.documentId ?? "");
   if (!/^[A-Za-z0-9-]{6,64}$/.test(documentId)) {
     throw new HttpsError("invalid-argument", "A valid document id is required.");
   }
 
   const expiryHours = data.expiryHours === 168 ? 168 : 24;
-  const storagePath = `users/${uid}/documents/${documentId}.pdf`;
+  const ownerId = uid ?? scopedUserId!;
+  const storagePath = `users/${ownerId}/documents/${documentId}.pdf`;
   const [exists] = await bucket.file(storagePath).exists();
   if (!exists) {
     throw new HttpsError("not-found", "That document has not been synced yet.");

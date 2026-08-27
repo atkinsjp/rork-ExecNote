@@ -22,6 +22,7 @@ struct DocumentDetailView: View {
     @State private var isExporting = false
     @State private var isSearching = false
     @State private var isNotesStudio = false
+    @State private var isSharingLink = false
 
     /// Drives PDFSelection highlighting + match navigation inside the reader.
     @State private var searchController = PDFSearchController()
@@ -139,6 +140,12 @@ struct DocumentDetailView: View {
                         } label: {
                             Label("Export & Share", systemImage: "square.and.arrow.up")
                         }
+
+                        Button {
+                            isSharingLink = true
+                        } label: {
+                            Label("Share via Link", systemImage: "link.icloud")
+                        }
                     }
 
                     if let fileURL {
@@ -204,6 +211,9 @@ struct DocumentDetailView: View {
         }
         .sheet(isPresented: $isExporting) {
             DocumentExportSheet(document: live)
+        }
+        .sheet(isPresented: $isSharingLink) {
+            ShareLinkSheetView(document: live)
         }
         .sheet(isPresented: $isNotesStudio) {
             TranscriptionReviewView(document: live)

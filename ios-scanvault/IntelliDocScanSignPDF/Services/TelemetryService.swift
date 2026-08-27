@@ -17,6 +17,7 @@ nonisolated enum TelemetryEvent: String, CaseIterable, Sendable {
     case syncQueuedOffline = "sync_queued_offline"
     case dataExported = "data_exported"
     case accountDeleted = "account_deleted"
+    case shareLinkCreated = "share_link_created"
 }
 
 /// Non-PII product telemetry.
