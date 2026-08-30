@@ -6,8 +6,8 @@
 import AuthenticationServices
 import SwiftUI
 
-/// Full-screen 5-step flow:
-/// hook → interactive redaction demo → persona selector → account → paywall.
+/// Full-screen 6-step flow:
+/// hook → interactive redaction demo → feature tour → persona selector → account → paywall.
 struct OnboardingFlowView: View {
     @Environment(SubscriptionManager.self) private var subscriptions
 
@@ -29,6 +29,8 @@ struct OnboardingFlowView: View {
                     switch coordinator.step {
                     case .hook: HookStep(onContinue: coordinator.advance)
                     case .demo: DemoStep(onContinue: coordinator.advance)
+                    case .tour:
+                        TourStep(onContinue: coordinator.advance)
                     case .persona:
                         PersonaStep(
                             persona: coordinator.persona,
@@ -334,7 +336,18 @@ private struct DemoStep: View {
     }
 }
 
-// MARK: - Step 3: Persona
+// MARK: - Step 3: Feature tour
+
+/// How-to walkthrough embedded in the launch flow; replays from Settings.
+private struct TourStep: View {
+    let onContinue: () -> Void
+
+    var body: some View {
+        FeatureTourView(onFinish: onContinue)
+    }
+}
+
+// MARK: - Step 4: Persona
 
 /// Goal selector that customizes the default folder set.
 private struct PersonaStep: View {

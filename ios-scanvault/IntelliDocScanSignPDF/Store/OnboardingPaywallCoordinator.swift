@@ -71,13 +71,14 @@ nonisolated enum OnboardingPersona: String, CaseIterable, Codable, Sendable, Ide
 
 // MARK: - Coordinator
 
-/// Drives the 5-step hook → demo → persona → account → paywall flow.
+/// Drives the 6-step hook → demo → tour → persona → account → paywall flow.
 @MainActor
 @Observable
 final class OnboardingPaywallCoordinator {
     enum Step: Int, CaseIterable {
         case hook
         case demo
+        case tour
         case persona
         case account
         case paywall

@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var showingLicenses = false
     @State private var showingDataManagement = false
     @State private var isConfirmingSignOut = false
+    @State private var showingFeatureTour = false
 
     private var mode: AppearanceMode {
         AppearanceMode(rawValue: appearanceRaw) ?? .system
@@ -35,6 +36,7 @@ struct SettingsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
                         appearanceSection
+                        learnSection
                         subscriptionSection
                         accountSection
                         siriSection
@@ -96,6 +98,63 @@ struct SettingsView: View {
                 DataManagementSheet()
                     .environment(store)
             }
+        }
+        .fullScreenCover(isPresented: $showingFeatureTour) {
+            FeatureTourView(isReplay: true) {
+                showingFeatureTour = false
+            }
+        }
+    }
+
+    // MARK: - Getting started
+
+    /// Replay entry for the launch walkthrough (scan → file → redact → sign).
+    private var learnSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "GETTING STARTED")
+
+            Button {
+                Haptics.selection()
+                showingFeatureTour = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Theme.amber.opacity(0.14))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "play.rectangle.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Theme.amber)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Feature tour")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Theme.textPrimary)
+                        Text("Replay the walkthrough of scanning, redaction and signing")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.textSecondary)
+                            .multilineTextAlignment(.leading)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+                .padding(14)
+                .background {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Theme.surfaceHigh)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                }
+            }
+            .buttonStyle(PressableStyle(scale: 0.98))
+            .accessibilityLabel("Replay the feature tour")
         }
     }
 
