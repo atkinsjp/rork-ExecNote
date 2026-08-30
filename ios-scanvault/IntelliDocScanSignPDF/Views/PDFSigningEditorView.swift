@@ -560,7 +560,7 @@ struct PDFSigningEditorView: View {
             y: normalized.y - heightNorm / 2,
             width: widthNorm,
             height: heightNorm
-        ).intersection(CGRect(x: -0.05, y: -0.05, width: 1.1, height: 1.1))
+        ).clampedToPage
 
         let stamp = PlacedStamp(data: PlacementData(
             pageIndex: pageIndex,
@@ -787,11 +787,13 @@ extension StampFactory {
 }
 
 nonisolated extension CGRect {
-    /// Keeps a stamp's frame reachable on the page while dragging.
+    /// Keeps a stamp fully on the page while dragging — a stamp hanging over
+    /// the edge is easy to miss and would burn half outside the PDF page.
     var clampedToPage: CGRect {
-        CGRect(
-            x: min(max(origin.x, -width * 0.6), 1 - width * 0.4),
-            y: min(max(origin.y, -height * 0.6), 1 - height * 0.4),
+        let margin: CGFloat = 0.015
+        return CGRect(
+            x: min(max(origin.x, margin), 1 - width - margin),
+            y: min(max(origin.y, margin), 1 - height - margin),
             width: width,
             height: height
         )

@@ -128,6 +128,7 @@ struct LiveScanView: View {
     let onCancel: () -> Void
     let onError: (Error) -> Void
 
+    @Environment(\.dismiss) private var dismiss
     @State private var model = LiveScanModel()
     @State private var isFlashing = false
 
@@ -235,7 +236,14 @@ struct LiveScanView: View {
 
     private var topBar: some View {
         HStack {
-            CircleButton(symbol: "xmark") { onCancel() }
+            CircleButton(symbol: "xmark") {
+                Haptics.impact(.light)
+                model.stop()
+                onCancel()
+                // Belt and suspenders: dismiss the presentation directly in
+                // case the caller's cancellation path stalls.
+                dismiss()
+            }
             Spacer()
             CircleButton(symbol: model.isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill") {
                 model.setTorch(!model.isTorchOn)
@@ -374,6 +382,7 @@ private struct CircleButton: View {
                 .frame(width: 44, height: 44)
                 .background(Circle().fill(.black.opacity(0.45)))
         }
+        .buttonStyle(.plain)
     }
 }
 

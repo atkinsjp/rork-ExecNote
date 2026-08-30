@@ -66,10 +66,25 @@ nonisolated struct DocumentQuad: Equatable, Sendable {
 /// main actor through the handler closures. Handlers must be assigned before
 /// `start()` and never reassigned afterwards.
 nonisolated final class DocumentEdgeScanner: NSObject, @unchecked Sendable {
-    /// True on hardware; false on devices without a rear camera (simulator),
-    /// where callers fall back to the VisionKit document camera.
+    /// Camera types we can scan with. `.external` covers webcam continuum and
+    /// cloud-simulator injected cameras; the built-in wide-angle covers phones.
+    private static let deviceTypes: [AVCaptureDevice.DeviceType] = [
+        .builtInWideAngleCamera, .external,
+    ]
+
+    private static func discoverCamera() -> AVCaptureDevice? {
+        let discovery = AVCaptureDevice.DiscoverySession(
+            deviceTypes: deviceTypes,
+            mediaType: .video,
+            position: .unspecified
+        )
+        return discovery.devices.first { $0.position == .back } ?? discovery.devices.first
+    }
+
+    /// False only on devices with no camera at all, where callers fall back
+    /// to the VisionKit document camera.
     static var isHardwareAvailable: Bool {
-        AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) != nil
+        discoverCamera() != nil
     }
 
     var onQuadUpdate: (@MainActor @Sendable (DocumentQuad?) -> Void)?
@@ -129,7 +144,7 @@ nonisolated final class DocumentEdgeScanner: NSObject, @unchecked Sendable {
         session.beginConfiguration()
         session.sessionPreset = .photo
 
-        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+        guard let device = Self.discoverCamera(),
               let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else {
             session.commitConfiguration()

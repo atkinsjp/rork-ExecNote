@@ -44,6 +44,9 @@ struct SignatureCanvasSheet: View {
 
     @State private var canvasView = PKCanvasView()
     @State private var ink: SignatureInk = .black
+    /// When set, overrides the preset inks with a user-picked color.
+    @State private var customColor: Color?
+    @State private var pickedColor: Color = .black
     @State private var strokeMultiplier: Double = 1.0
     @State private var title: String = ""
     @State private var type: SignatureType = .signature
@@ -149,7 +152,7 @@ struct SignatureCanvasSheet: View {
                         .allowsHitTesting(false)
                     }
 
-                PencilCanvas(canvasView: $canvasView, ink: ink, strokeMultiplier: strokeMultiplier)
+                PencilCanvas(canvasView: $canvasView, ink: ink, customColor: customColor, strokeMultiplier: strokeMultiplier)
                     .clipShape(.rect(cornerRadius: 16, style: .continuous))
             }
             .frame(height: 250)
@@ -160,18 +163,19 @@ struct SignatureCanvasSheet: View {
 
     private var toolRow: some View {
         HStack(spacing: 12) {
-            // Ink swatches.
+            // Ink swatches + custom picker.
             HStack(spacing: 8) {
                 ForEach(SignatureInk.allCases) { option in
                     Button {
                         ink = option
+                        customColor = nil
                         Haptics.selection()
                     } label: {
                         ZStack {
                             Circle()
                                 .fill(option.color)
                                 .frame(width: 26, height: 26)
-                            if ink == option {
+                            if customColor == nil && ink == option {
                                 Circle()
                                     .strokeBorder(Theme.amber, lineWidth: 2)
                                     .frame(width: 33, height: 33)
@@ -182,6 +186,17 @@ struct SignatureCanvasSheet: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(option.label)
                 }
+
+                ColorPicker(selection: $pickedColor, supportsOpacity: false) {
+                    EmptyView()
+                }
+                .labelsHidden()
+                .frame(width: 36, height: 36)
+                .onChange(of: pickedColor) { _, newValue in
+                    customColor = newValue
+                    Haptics.selection()
+                }
+                .accessibilityLabel("Custom ink color")
             }
 
             Rectangle().fill(Theme.hairline).frame(width: 1, height: 26)
@@ -279,12 +294,16 @@ struct SignatureCanvasSheet: View {
 struct PencilCanvas: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
     let ink: SignatureInk
+    var customColor: Color?
     let strokeMultiplier: Double
 
     func makeUIView(context: Context) -> PKCanvasView {
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
         canvasView.drawingPolicy = .anyInput
+        // PencilKit re-renders dark inks for dark traits (black becomes
+        // white); pin the canvas to light so strokes match the picker.
+        canvasView.overrideUserInterfaceStyle = .light
         canvasView.tool = makeTool()
         canvasView.drawingGestureRecognizer.isEnabled = true
         return canvasView
@@ -295,12 +314,12 @@ struct PencilCanvas: UIViewRepresentable {
     }
 
     private func makeTool() -> PKTool {
-        let tool = PKInkingTool(
+        let color = customColor.map(UIColor.init) ?? UIColor(ink.color)
+        return PKInkingTool(
             .pen,
-            color: UIColor(ink.color),
+            color: color,
             width: 3.2 * strokeMultiplier
         )
-        return tool
     }
 }
 
