@@ -107,6 +107,10 @@ struct PDFSigningEditorView: View {
     @State private var imagesById: [UUID: UIImage] = [:]
     @State private var selectedStampId: UUID?
     @State private var armedProfileId: UUID?
+    @State private var confirmStampId: UUID?
+    /// Maps a signature stamp to the auto-date stamp placed with it, so
+    /// removing the signature in the confirmation step takes the date along.
+    @State private var dateCompanions: [UUID: UUID] = [:]
     @State private var isLoading = true
     @State private var isDrawingNew = false
     @State private var isManagingKit = false
@@ -144,9 +148,14 @@ struct PDFSigningEditorView: View {
                         )
                     } else {
                         pagesScroller
+                        if confirmStamp != nil {
+                            placementConfirmationCard
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
                         kitBar
                     }
                 }
+                .animation(Theme.snap, value: confirmStampId)
 
                 if isFinalizing {
                     finalizeOverlay
@@ -566,8 +575,12 @@ struct PDFSigningEditorView: View {
         }
 
         if autoDateOn, profile.type == .signature || profile.type == .initials {
-            appendAutoDate(below: rect, pageIndex: pageIndex)
+            dateCompanions[stamp.id] = appendAutoDate(below: rect, pageIndex: pageIndex)
         }
+
+        // Every placement lands in the confirmation step first — the user
+        // adjusts or removes it before moving on.
+        confirmStampId = stamp.id
 
         Haptics.impact(.medium)
         // Tap-to-place is single-shot; dragging can continue from the kit.
@@ -576,10 +589,12 @@ struct PDFSigningEditorView: View {
 
     /// Drops the session date stamp centered just below a freshly placed
     /// signature. It stays a regular, movable stamp the user can adjust.
-    private func appendAutoDate(below signatureRect: CGRect, pageIndex: Int) {
+    /// Returns the new stamp's id so it can travel with its signature.
+    @discardableResult
+    private func appendAutoDate(below signatureRect: CGRect, pageIndex: Int) -> UUID? {
         guard let dateImage = imagesById[StampFactory.dateStampID],
               pageIndex < pages.count
-        else { return }
+        else { return nil }
 
         let pageSize = pages[pageIndex].size
         let pageAspect = pageSize.width / pageSize.height
@@ -607,6 +622,97 @@ struct PDFSigningEditorView: View {
         withAnimation(Theme.flight) {
             placements.append(stamp)
         }
+        return stamp.id
+    }
+
+    // MARK: - Placement confirmation
+
+    private var confirmStamp: PlacedStamp? {
+        guard let id = confirmStampId else { return nil }
+        return placements.first { $0.id == id }
+    }
+
+    /// Floating card shown after each placement: keep adjusting, remove, or
+    /// confirm the stamp's position.
+    private var placementConfirmationCard: some View {
+        HStack(spacing: 12) {
+            if let stamp = confirmStamp, let image = imagesById[stamp.data.profileId] {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 52, height: 30)
+                    .padding(5)
+                    .background { RoundedRectangle(cornerRadius: 8).fill(Theme.paper) }
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Confirm placement")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                Text("Drag, pinch or rotate the stamp — then lock it in.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.textSecondary)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                removeConfirmedStamp()
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(hex: "E2664F"))
+                    .frame(width: 38, height: 38)
+                    .background { Circle().fill(Theme.surfaceHigh) }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("Remove stamp")
+
+            Button {
+                confirmPlacement()
+            } label: {
+                Text("Looks Good")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(hex: "1A1206"))
+                    .padding(.horizontal, 14)
+                    .frame(height: 38)
+                    .background { Capsule().fill(Theme.amber) }
+            }
+            .buttonStyle(PressableStyle(scale: 0.96))
+            .accessibilityLabel("Confirm stamp placement")
+        }
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Theme.hairline, lineWidth: 1)
+        }
+        .padding(.horizontal, 18)
+        .padding(.bottom, 8)
+    }
+
+    private func confirmPlacement() {
+        guard confirmStampId != nil else { return }
+        withAnimation(Theme.snap) {
+            confirmStampId = nil
+            selectedStampId = nil
+        }
+        Haptics.success()
+    }
+
+    private func removeConfirmedStamp() {
+        guard let id = confirmStampId else { return }
+        withAnimation(Theme.snap) {
+            placements.removeAll { $0.id == id || $0.id == dateCompanions[id] }
+            if selectedStampId == id { selectedStampId = nil }
+            confirmStampId = nil
+        }
+        dateCompanions[id] = nil
+        Haptics.warning()
     }
 
     private func move(stampId: UUID, delta: CGSize, pageSize: CGSize) {
@@ -636,6 +742,12 @@ struct PDFSigningEditorView: View {
         withAnimation(Theme.snap) {
             _ = placements.remove(at: index)
             if selectedStampId == stampId { selectedStampId = nil }
+            if confirmStampId == stampId { confirmStampId = nil }
+        }
+        // Keep companion bookkeeping in sync whichever half is deleted.
+        dateCompanions[stampId] = nil
+        if let owner = dateCompanions.first(where: { $0.value == stampId })?.key {
+            dateCompanions[owner] = nil
         }
         Haptics.warning()
     }
@@ -646,6 +758,7 @@ struct PDFSigningEditorView: View {
         guard !placements.isEmpty, !isFinalizing else { return }
         isFinalizing = true
         selectedStampId = nil
+        confirmStampId = nil
 
         let name = signerName.trimmingCharacters(in: .whitespaces)
         let email = signerEmail.trimmingCharacters(in: .whitespaces)
