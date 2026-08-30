@@ -17,6 +17,29 @@ struct DocumentRow: View {
 
     @State private var isConfirmingDelete = false
 
+    /// Compact `#tag` badges — first two plus an overflow count — so tagged
+    /// scans are recognizable at a glance in lists.
+    @ViewBuilder
+    private var tagBadges: some View {
+        if !document.tags.isEmpty {
+            HStack(spacing: 5) {
+                ForEach(document.tags.prefix(2), id: \.self) { tag in
+                    Text("#\(tag)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.amber)
+                        .lineLimit(1)
+                }
+                if document.tags.count > 2 {
+                    Text("+\(document.tags.count - 2)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Theme.textTertiary)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Tags: " + document.tags.joined(separator: ", "))
+        }
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 14) {
@@ -46,6 +69,8 @@ struct DocumentRow: View {
                             .padding(.vertical, 3)
                             .background { Capsule().fill(folder.tint.opacity(0.14)) }
                         }
+
+                        tagBadges
 
                         Text(document.pageSummary)
                             .font(Theme.mono(.caption2))

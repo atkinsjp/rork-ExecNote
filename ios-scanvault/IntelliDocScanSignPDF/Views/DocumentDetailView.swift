@@ -23,6 +23,8 @@ struct DocumentDetailView: View {
     @State private var isSearching = false
     @State private var isNotesStudio = false
     @State private var isSharingLink = false
+    @State private var isAddingTag = false
+    @State private var draftTag = ""
 
     /// Drives PDFSelection highlighting + match navigation inside the reader.
     @State private var searchController = PDFSearchController()
@@ -75,6 +77,8 @@ struct DocumentDetailView: View {
                     )
                     Spacer()
                 }
+
+                tagsStrip
 
                 if !live.ocrKeywords.isEmpty {
                     keywordStrip
@@ -190,6 +194,16 @@ struct DocumentDetailView: View {
             TextField("Title", text: $draftTitle)
             Button("Save") { store.rename(live, to: draftTitle) }
             Button("Cancel", role: .cancel) {}
+        }
+        .alert("Add tags", isPresented: $isAddingTag) {
+            TextField("e.g. Taxes 2026, Car lease", text: $draftTag)
+            Button("Add") { addDraftTag() }
+            ForEach(suggestedTags, id: \.self) { tag in
+                Button("Add “\(tag)”") { appendTag(tag) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Separate multiple tags with commas — up to \(ScannedDocument.maxTags) per document. Tags are searchable from the dashboard.")
         }
         .confirmationDialog(
             "Delete this document?",
@@ -460,6 +474,108 @@ struct DocumentDetailView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(Theme.hairline, lineWidth: 1)
         }
+    }
+
+    // MARK: - Tags
+
+    /// Existing vault tags this document doesn't have yet — surfaced as
+    /// one-tap suggestions in the add-tag alert.
+    private var suggestedTags: [String] {
+        Array(store.availableTags.filter { !live.hasTag($0) }.prefix(3))
+    }
+
+    /// Compact tag manager pinned under the reader: amber tag chips with
+    /// inline remove buttons plus an Add affordance.
+    private var tagsStrip: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text("MY TAGS")
+                    .font(Theme.mono(.caption2, weight: .semibold))
+                    .tracking(1.4)
+                    .foregroundStyle(Theme.textTertiary)
+                    .padding(.horizontal, 20)
+
+                Spacer(minLength: 0)
+
+                Button {
+                    Haptics.selection()
+                    draftTag = ""
+                    isAddingTag = true
+                } label: {
+                    Label("Add", systemImage: "plus.circle.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.amberBright)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background { Capsule().fill(Theme.amber.opacity(0.14)) }
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("Add tag")
+                .padding(.trailing, 8)
+            }
+
+            if live.tags.isEmpty {
+                Text("Tag this scan — “Taxes 2026”, “Warranty” — then filter by tag in search.")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Theme.textTertiary)
+                    .padding(.horizontal, 20)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 7) {
+                        ForEach(live.tags, id: \.self) { tag in
+                            HStack(spacing: 6) {
+                                Image(systemName: "tag.fill")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(Theme.amber)
+                                Text(tag)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Theme.amberBright)
+                                Button {
+                                    removeTag(tag)
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 9, weight: .bold))
+                                        .foregroundStyle(Theme.textTertiary)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Remove tag \(tag)")
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background { Capsule().fill(Theme.amber.opacity(0.12)) }
+                            .overlay { Capsule().strokeBorder(Theme.amber.opacity(0.3), lineWidth: 1) }
+                        }
+                    }
+                }
+                .contentMargins(.horizontal, 20, for: .scrollContent)
+            }
+        }
+        .padding(.bottom, 14)
+    }
+
+    /// Merges the alert's draft text (comma-separated) into the live tags.
+    private func addDraftTag() {
+        let raw = draftTag
+        draftTag = ""
+        var next = live.tags
+        next.append(contentsOf: raw.components(separatedBy: ","))
+        guard let normalized = ScannedDocument.normalizeTags(next), normalized != live.tags else { return }
+        Task { await store.setTags(normalized, for: live) }
+        Haptics.success()
+    }
+
+    /// Appends one suggested tag, deduped against the current set.
+    private func appendTag(_ tag: String) {
+        guard !live.hasTag(tag) else { return }
+        Task { await store.setTags(live.tags + [tag], for: live) }
+        Haptics.success()
+    }
+
+    private func removeTag(_ tag: String) {
+        var next = live.tags
+        next.removeAll { $0.localizedCaseInsensitiveCompare(tag) == .orderedSame }
+        Task { await store.setTags(next, for: live) }
+        Haptics.selection()
     }
 
     private var keywordStrip: some View {

@@ -119,6 +119,7 @@ final class DocumentSearchEngine {
             document.title,
             document.ocrText ?? "",
             document.ocrKeywords.joined(separator: " "),
+            document.tags.joined(separator: " "),
             document.noteTranscription ?? "",
             document.noteTransforms.map(\.content).joined(separator: "\n"),
         ]
@@ -160,7 +161,11 @@ final class DocumentSearchEngine {
                 if let category, document.categoryTag?.localizedCaseInsensitiveCompare(category) != .orderedSame {
                     return false
                 }
-                if let tag, !document.ocrKeywords.contains(where: { $0.localizedCaseInsensitiveContains(tag) }) {
+                // User tags win; fall back to OCR keywords so legacy
+                // documents remain filterable.
+                if let tag,
+                   !document.tags.contains(where: { $0.localizedCaseInsensitiveContains(tag) }),
+                   !document.ocrKeywords.contains(where: { $0.localizedCaseInsensitiveContains(tag) }) {
                     return false
                 }
                 guard dateFilter.contains(document.createdAt) else { return false }
@@ -183,6 +188,7 @@ final class DocumentSearchEngine {
         for token in tokens {
             total += entry.tokenCounts[token] ?? 0
             if document.title.lowercased().contains(token) { total += 8 }
+            if document.tags.contains(where: { $0.lowercased().contains(token) }) { total += 6 }
             if document.ocrKeywords.contains(where: { $0.lowercased().contains(token) }) { total += 4 }
         }
         return total

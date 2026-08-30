@@ -460,7 +460,7 @@ struct MainDashboardView: View {
             if store.searchResults.isEmpty {
                 VaultEmptyState(
                     title: "No matches",
-                    message: "Search covers document titles, tags and the full text read from every scanned page — sealed vault folders stay hidden.",
+                    message: "Search covers titles, tags, keywords and the full text read from every scanned page — sealed vault folders stay hidden.",
                     symbol: "text.magnifyingglass"
                 )
             } else {
@@ -480,7 +480,7 @@ struct MainDashboardView: View {
     }
 
     /// Consolidated filter & sort menu layered on top of the free-text query:
-    /// result ordering plus file-type / date-range / smart-category filters.
+    /// result ordering plus file-type / date-range / tag / smart-category filters.
     private var searchFilterRow: some View {
         @Bindable var bindableStore = store
         return HStack(spacing: 8) {
@@ -543,6 +543,35 @@ struct MainDashboardView: View {
                     }
                 }
 
+                // --- User tags ----------------------------------------------------
+                if !store.availableTags.isEmpty {
+                    Section("Tags") {
+                        Button {
+                            Haptics.selection()
+                            bindableStore.searchTagFilter = nil
+                        } label: {
+                            if store.searchTagFilter == nil {
+                                Label("All tags", systemImage: "checkmark")
+                            } else {
+                                Text("All tags")
+                            }
+                        }
+                        ForEach(store.availableTags, id: \.self) { tag in
+                            Button {
+                                Haptics.selection()
+                                bindableStore.searchTagFilter =
+                                    store.searchTagFilter == tag ? nil : tag
+                            } label: {
+                                if store.searchTagFilter == tag {
+                                    Label(tag, systemImage: "checkmark")
+                                } else {
+                                    Label(tag, systemImage: "tag")
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // --- Smart-routing category ---------------------------------------
                 if !store.availableCategories.isEmpty {
                     Section("Category") {
@@ -578,6 +607,7 @@ struct MainDashboardView: View {
                             bindableStore.searchTypeFilter = nil
                             bindableStore.searchDateFilter = .anyTime
                             bindableStore.searchCategoryFilter = nil
+                            bindableStore.searchTagFilter = nil
                         } label: {
                             Label("Clear filters", systemImage: "xmark.circle")
                         }

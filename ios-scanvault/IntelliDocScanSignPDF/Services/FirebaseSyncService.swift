@@ -317,6 +317,7 @@ nonisolated extension ScannedDocument {
             "storagePath": ["stringValue": storagePath],
             "pageCount": ["integerValue": String(pageCount)],
             "ocrKeywords": ["arrayValue": ["values": ocrKeywords.map { ["stringValue": $0] }]],
+            "tags": ["arrayValue": ["values": tags.map { ["stringValue": $0] }]],
             "isRedacted": ["booleanValue": isRedacted],
             "redactionCount": ["integerValue": String(redactionCount)],
             "isSigned": ["booleanValue": isSigned],
@@ -335,24 +336,37 @@ nonisolated extension ScannedDocument {
               let title = fields.firestoreString("title")
         else { return nil }
 
+        // Pre-resolved locals keep this expression cheap to type-check.
+        let folderId: String = fields.firestoreString("folderId") ?? AppFolder.inboxID
+        let storagePath: String = fields.firestoreString("storagePath") ?? ""
+        let pageCount: Int = fields.firestoreInt("pageCount") ?? 1
+        let ocrKeywords: [String] = fields.firestoreStringArray("ocrKeywords")
+        let tags: [String] = fields.firestoreStringArray("tags")
+        let createdAt: Date = fields.firestoreDate("createdAt") ?? .now
+        let isRedacted: Bool = fields.firestoreBool("isRedacted") ?? false
+        let redactionCount: Int = fields.firestoreInt("redactionCount") ?? 0
+        let isSigned: Bool = fields.firestoreBool("isSigned") ?? false
+        let signatureCount: Int = fields.firestoreInt("signatureCount") ?? 0
+
         self.init(
             id: id,
             title: title,
-            folderId: fields.firestoreString("folderId") ?? AppFolder.inboxID,
-            storagePath: fields.firestoreString("storagePath") ?? "",
+            folderId: folderId,
+            storagePath: storagePath,
             localURL: nil,
-            pageCount: fields.firestoreInt("pageCount") ?? 1,
-            ocrKeywords: fields.firestoreStringArray("ocrKeywords"),
-            createdAt: fields.firestoreDate("createdAt") ?? .now,
-            isRedacted: fields.firestoreBool("isRedacted") ?? false,
-            redactionCount: fields.firestoreInt("redactionCount") ?? 0,
-            isSigned: fields.firestoreBool("isSigned") ?? false,
-            signatureCount: fields.firestoreInt("signatureCount") ?? 0,
+            pageCount: pageCount,
+            ocrKeywords: ocrKeywords,
+            createdAt: createdAt,
+            isRedacted: isRedacted,
+            redactionCount: redactionCount,
+            isSigned: isSigned,
+            signatureCount: signatureCount,
             auditHash: fields.firestoreString("auditHash"),
             docType: fields.firestoreString("docType"),
             categoryTag: fields.firestoreString("categoryTag"),
             noteTranscription: fields.firestoreNonEmptyString("noteTranscription"),
-            noteTransforms: fields.firestoreMapArray("noteTransforms").compactMap(NoteTransformRecord.init(firestore:))
+            noteTransforms: fields.firestoreMapArray("noteTransforms").compactMap(NoteTransformRecord.init(firestore:)),
+            tags: tags
         )
     }
 }

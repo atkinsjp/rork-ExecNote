@@ -18,7 +18,7 @@ nonisolated enum SpotlightIndexer {
         let attributes = CSSearchableItemAttributeSet(contentType: UTType.pdf)
         attributes.title = document.title
         attributes.contentDescription = snippet(for: document)
-        attributes.keywords = Array(document.ocrKeywords.prefix(12))
+        attributes.keywords = Array((document.tags + document.ocrKeywords).prefix(12))
         attributes.contentCreationDate = document.createdAt
         attributes.addedDate = document.createdAt
         attributes.identifier = document.id

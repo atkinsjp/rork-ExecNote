@@ -31,6 +31,8 @@ final class VaultStore {
     var searchDateFilter: SearchDateFilter = .anyTime
     /// Smart-routing category filter (e.g. "Tax & Finance") on top of the query.
     var searchCategoryFilter: String?
+    /// User-assigned tag filter on top of the query (matches document tags).
+    var searchTagFilter: String?
     /// Ordering applied to the filtered result set.
     var searchSort: SearchSort = .relevance
     var banner: String?
@@ -153,6 +155,7 @@ final class VaultStore {
         searchQuery = ""
         searchTypeFilter = nil
         searchCategoryFilter = nil
+        searchTagFilter = nil
         searchDateFilter = .anyTime
         searchSort = .relevance
     }
@@ -188,6 +191,7 @@ final class VaultStore {
             query: searchQuery,
             in: searchable,
             docType: searchTypeFilter,
+            tag: searchTagFilter,
             category: searchCategoryFilter,
             dateFilter: searchDateFilter
         )
@@ -227,12 +231,13 @@ final class VaultStore {
         }
     }
 
-    /// Number of active search filters (type / date / category), shown as a
-    /// badge on the filter menu chip.
+    /// Number of active search filters (type / date / category / tag), shown
+    /// as a badge on the filter menu chip.
     var activeSearchFilters: Int {
         (searchTypeFilter != nil ? 1 : 0)
             + (searchDateFilter != .anyTime ? 1 : 0)
             + (searchCategoryFilter != nil ? 1 : 0)
+            + (searchTagFilter != nil ? 1 : 0)
     }
 
     /// Distinct document types present in the vault (for the filter menu).
@@ -244,6 +249,18 @@ final class VaultStore {
             result.append(docType)
         }
         return result.sorted()
+    }
+
+    /// Distinct user-assigned tags present in the vault (for the filter menu).
+    var availableTags: [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for document in documents {
+            for tag in document.tags where seen.insert(tag.lowercased()).inserted {
+                result.append(tag)
+            }
+        }
+        return result.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     /// Distinct smart-routing categories present in the vault (for the filter menu).
@@ -503,6 +520,21 @@ final class VaultStore {
             await persist()
             try? await sync.saveDocumentMetadata(updated, userId: userId)
         }
+    }
+
+    /// Replaces a document's user tags with a normalized set, persists the
+    /// change, mirrors it into Firestore metadata and refreshes Spotlight.
+    @discardableResult
+    func setTags(_ tags: [String], for document: ScannedDocument) async -> ScannedDocument? {
+        guard let index = documents.firstIndex(where: { $0.id == document.id }) else { return nil }
+
+        documents[index].tags = ScannedDocument.normalizeTags(tags) ?? []
+        let updated = documents[index]
+
+        await persist()
+        try? await sync.saveDocumentMetadata(updated, userId: userId)
+        SpotlightIndexer.index(updated)
+        return updated
     }
 
     func move(_ document: ScannedDocument, to folderId: String) {

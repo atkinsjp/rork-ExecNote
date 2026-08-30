@@ -38,13 +38,15 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
     var noteTranscription: String?
     /// AI-generated variations of the notes, newest first.
     var noteTransforms: [NoteTransformRecord]
+    /// User-assigned text tags for organization and filtering (max 10).
+    var tags: [String]
 
     enum CodingKeys: String, CodingKey {
         case id, title, folderId, storagePath, localURL, pageCount, ocrKeywords
         case createdAt, isRedacted, redactionCount
         case isSigned, signatureCount, auditHash
         case ocrText, docType, categoryTag, aiSummary
-        case noteTranscription, noteTransforms
+        case noteTranscription, noteTransforms, tags
     }
 
     init(
@@ -66,7 +68,8 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         categoryTag: String? = nil,
         aiSummary: String? = nil,
         noteTranscription: String? = nil,
-        noteTransforms: [NoteTransformRecord] = []
+        noteTransforms: [NoteTransformRecord] = [],
+        tags: [String] = []
     ) {
         self.id = id
         self.title = title
@@ -87,6 +90,7 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         self.aiSummary = aiSummary
         self.noteTranscription = noteTranscription
         self.noteTransforms = noteTransforms
+        self.tags = tags
     }
 
     /// Tolerant decoding so archives written before redaction existed keep loading.
@@ -111,6 +115,35 @@ nonisolated struct ScannedDocument: Identifiable, Hashable, Codable, Sendable {
         aiSummary = try container.decodeIfPresent(String.self, forKey: .aiSummary)
         noteTranscription = try container.decodeIfPresent(String.self, forKey: .noteTranscription)
         noteTransforms = try container.decodeIfPresent([NoteTransformRecord].self, forKey: .noteTransforms) ?? []
+        tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+    }
+
+    /// Maximum number of tags a single document may carry.
+    static let maxTags = 10
+
+    /// Normalizes raw user input into clean, deduplicated tags: trims
+    /// whitespace, collapses runs, caps length at 24 characters, drops
+    /// duplicates (case-insensitive, keeping the first spelling) and respects
+    /// `maxTags`. Returns nil when nothing usable remains.
+    static func normalizeTags(_ raw: [String]) -> [String]? {
+        var seen = Set<String>()
+        var result: [String] = []
+        for candidate in raw {
+            let collapsed = candidate
+                .components(separatedBy: .whitespacesAndNewlines)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+            let tag = String(collapsed.prefix(24)).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !tag.isEmpty, seen.insert(tag.lowercased()).inserted else { continue }
+            result.append(tag)
+            if result.count == maxTags { break }
+        }
+        return result.isEmpty ? nil : result
+    }
+
+    /// Case-insensitive membership check for this document's tags.
+    func hasTag(_ tag: String) -> Bool {
+        tags.contains { $0.localizedCaseInsensitiveCompare(tag) == .orderedSame }
     }
 }
 
@@ -131,11 +164,12 @@ extension ScannedDocument {
         pageCount == 1 ? "1 page" : "\(pageCount) pages"
     }
 
-    /// Case-insensitive match against the title and extracted OCR keywords.
+    /// Case-insensitive match against the title, user tags and OCR keywords.
     func matches(query: String) -> Bool {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return true }
         if title.localizedStandardContains(trimmed) { return true }
+        if tags.contains(where: { $0.localizedStandardContains(trimmed) }) { return true }
         return ocrKeywords.contains { $0.localizedStandardContains(trimmed) }
     }
 }
@@ -176,7 +210,8 @@ extension ScannedDocument {
             storagePath: "users/preview/documents/d-1.pdf",
             pageCount: 12,
             ocrKeywords: ["lease", "tenant", "deposit", "landlord"],
-            createdAt: .now.addingTimeInterval(-3_600)
+            createdAt: .now.addingTimeInterval(-3_600),
+            tags: ["apartment", "important"]
         ),
         ScannedDocument(
             id: "d-2",
@@ -185,7 +220,8 @@ extension ScannedDocument {
             storagePath: "users/preview/documents/d-2.pdf",
             pageCount: 5,
             ocrKeywords: ["invoice", "total", "vat", "receipt"],
-            createdAt: .now.addingTimeInterval(-86_400)
+            createdAt: .now.addingTimeInterval(-86_400),
+            tags: ["expenses"]
         ),
         ScannedDocument(
             id: "d-3",
@@ -216,7 +252,8 @@ extension ScannedDocument {
             ocrKeywords: ["confidential", "agreement", "signature"],
             createdAt: .now.addingTimeInterval(-9 * 86_400),
             isSigned: true,
-            signatureCount: 2
+            signatureCount: 2,
+            tags: ["legal", "important"]
         ),
     ]
 }
