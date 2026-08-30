@@ -27,6 +27,10 @@ struct MainDashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var path: [VaultRoute] = []
+
+    /// Zoom transition namespace shared with document rows so tapping a scan
+    /// morphs the row into the detail view (iOS 18 navigation transition).
+    @Namespace private var documentZoomNamespace
     @State private var isShowingCamera = false
     @State private var isShowingReview = false
     @State private var isShowingNewFolder = false
@@ -122,9 +126,10 @@ struct MainDashboardView: View {
             .navigationDestination(for: VaultRoute.self) { route in
                 switch route {
                 case .folder(let folder):
-                    FolderDetailView(folder: folder, path: $path)
+                    FolderDetailView(folder: folder, path: $path, sourceNamespace: documentZoomNamespace)
                 case .document(let document):
                     DocumentDetailView(document: document)
+                        .navigationTransition(.zoom(sourceID: document.id, in: documentZoomNamespace))
                 }
             }
         }
@@ -510,6 +515,7 @@ struct MainDashboardView: View {
                                 path.append(.document(document))
                             }
                         }
+                        .matchedTransitionSource(id: document.id, in: documentZoomNamespace)
                     }
                 }
             }
@@ -549,6 +555,7 @@ struct MainDashboardView: View {
                                 path.append(.document(document))
                             }
                         }
+                        .matchedTransitionSource(id: document.id, in: documentZoomNamespace)
                     }
                 }
             }

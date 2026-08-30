@@ -21,6 +21,11 @@ struct FolderDetailView: View {
     /// `.document` routes exactly like the dashboard rows do.
     @Binding var path: [VaultRoute]
 
+    /// Zoom transition namespace owned by the dashboard's navigation stack —
+    /// registered on each row so tapping a document morphs it into the detail
+    /// view instead of using the default push.
+    let sourceNamespace: Namespace.ID
+
     @State private var isEditing = false
 
     // Multi-select mode for bulk document actions.
@@ -320,6 +325,7 @@ struct FolderDetailView: View {
                                 DocumentRow(document: document) {
                                     path.append(.document(document))
                                 }
+                                .matchedTransitionSource(id: document.id, in: sourceNamespace)
                             }
                         }
                     }
@@ -457,9 +463,21 @@ struct FolderDetailView: View {
 }
 
 #Preview {
-    NavigationStack {
-        FolderDetailView(folder: AppFolder.mockList[1], path: .constant([]))
+    FolderDetailPreview()
+}
+
+private struct FolderDetailPreview: View {
+    @Namespace private var zoomNamespace
+
+    var body: some View {
+        NavigationStack {
+            FolderDetailView(
+                folder: AppFolder.mockList[1],
+                path: .constant([]),
+                sourceNamespace: zoomNamespace
+            )
+        }
+        .environment(VaultStore.mock())
+        .preferredColorScheme(.dark)
     }
-    .environment(VaultStore.mock())
-    .preferredColorScheme(.dark)
 }
