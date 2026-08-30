@@ -547,6 +547,14 @@ private struct AccountStep: View {
                 .padding(.bottom, 30)
         }
         .animation(Theme.flight, value: account.isSignedIn)
+        .alert("Sign in with Apple", isPresented: Binding(
+            get: { account.lastError != nil },
+            set: { if !$0 { account.clearError() } }
+        )) {
+            Button("OK", role: .cancel) { account.clearError() }
+        } message: {
+            Text(account.lastError ?? "")
+        }
         .onChange(of: account.isSignedIn) { _, isSignedIn in
             if isSignedIn {
                 Haptics.success()

@@ -17,6 +17,10 @@ struct FolderDetailView: View {
 
     let folder: AppFolder
 
+    /// Shared navigation path from the dashboard stack — document taps push
+    /// `.document` routes exactly like the dashboard rows do.
+    @Binding var path: [VaultRoute]
+
     @State private var isEditing = false
 
     // Multi-select mode for bulk document actions.
@@ -313,11 +317,9 @@ struct FolderDetailView: View {
                                     toggleSelection(document.id)
                                 }
                             } else {
-                                NavigationLink(value: VaultRoute.document(document)) {
-                                    DocumentRow(document: document) {}
-                                        .allowsHitTesting(false)
+                                DocumentRow(document: document) {
+                                    path.append(.document(document))
                                 }
-                                .buttonStyle(PressableStyle(scale: 0.98))
                             }
                         }
                     }
@@ -456,7 +458,7 @@ struct FolderDetailView: View {
 
 #Preview {
     NavigationStack {
-        FolderDetailView(folder: AppFolder.mockList[1])
+        FolderDetailView(folder: AppFolder.mockList[1], path: .constant([]))
     }
     .environment(VaultStore.mock())
     .preferredColorScheme(.dark)

@@ -47,6 +47,12 @@ struct DocumentDetailView: View {
             VStack(spacing: 0) {
                 metaBar
 
+                if fileURL != nil {
+                    quickActions
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 10)
+                }
+
                 if showsSummaryHeader {
                     summaryHeader
                         .padding(.horizontal, 16)
@@ -236,6 +242,40 @@ struct DocumentDetailView: View {
         .task(id: live.id) {
             guard live.aiSummary == nil, summaryPhase == .idle, liveHasOCR else { return }
             await loadSummary(force: false)
+        }
+    }
+
+    // MARK: - Quick actions
+
+    /// Always-visible action row under the meta bar — signing used to live
+    /// only in the overflow menu, where it was hard to find.
+    private var quickActions: some View {
+        HStack(spacing: 10) {
+            Button {
+                Haptics.impact(.medium)
+                isSigning = true
+            } label: {
+                Label(live.isSigned ? "Edit Signature" : "Sign & Finalize", systemImage: "signature")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(hex: "1A1206"))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+            }
+            .background(Capsule().fill(Theme.amber))
+            .buttonStyle(PressableStyle(scale: 0.97))
+
+            Button {
+                Haptics.selection()
+                isExporting = true
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+            }
+            .background(Capsule().fill(Theme.surfaceHigh))
+            .buttonStyle(PressableStyle(scale: 0.97))
         }
     }
 

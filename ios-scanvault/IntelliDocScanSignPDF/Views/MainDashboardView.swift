@@ -122,7 +122,7 @@ struct MainDashboardView: View {
             .navigationDestination(for: VaultRoute.self) { route in
                 switch route {
                 case .folder(let folder):
-                    FolderDetailView(folder: folder)
+                    FolderDetailView(folder: folder, path: $path)
                 case .document(let document):
                     DocumentDetailView(document: document)
                 }

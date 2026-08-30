@@ -340,6 +340,14 @@ struct SettingsView: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Theme.textTertiary)
         }
+        .alert("Sign in with Apple", isPresented: Binding(
+            get: { account.lastError != nil },
+            set: { if !$0 { account.clearError() } }
+        )) {
+            Button("OK", role: .cancel) { account.clearError() }
+        } message: {
+            Text(account.lastError ?? "")
+        }
     }
 
     private var signInCard: some View {

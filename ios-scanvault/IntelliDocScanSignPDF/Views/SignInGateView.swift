@@ -96,6 +96,14 @@ struct SignInGateView: View {
                 .padding(.bottom, 22)
             }
         }
+        .alert("Sign in with Apple", isPresented: Binding(
+            get: { account.lastError != nil },
+            set: { if !$0 { account.clearError() } }
+        )) {
+            Button("OK", role: .cancel) { account.clearError() }
+        } message: {
+            Text(account.lastError ?? "")
+        }
     }
 }
 

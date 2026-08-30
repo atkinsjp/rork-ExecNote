@@ -35,6 +35,10 @@ final class AccountService {
     /// barrier after an explicit logout (data itself never leaves the device).
     private(set) var requiresSignIn: Bool
 
+    /// Message for the most recent sign-in failure, surfaced by whichever
+    /// screen presented the Apple button. Cleared once shown.
+    private(set) var lastError: String?
+
     var isSignedIn: Bool { appleUserID != nil }
 
     /// Best-effort friendly label: real name → mailbox → generic.
@@ -76,9 +80,23 @@ final class AccountService {
             setSignOutLock(false)
             Haptics.success()
 
-        case .failure:
+        case .failure(let error):
             Haptics.warning()
+            // A deliberate cancel stays silent; every other failure gets an
+            // explainer — most often the device has no Apple ID signed in
+            // (typical on simulators), which otherwise looks like a dead tap.
+            if let authError = error as? ASAuthorizationError,
+               authError.code == .canceled {
+                lastError = nil
+            } else {
+                lastError = "Sign in with Apple didn't complete. Check that you're signed in to an Apple ID in Settings, then try again."
+            }
         }
+    }
+
+    /// Dismisses the sign-in error alert.
+    func clearError() {
+        lastError = nil
     }
 
     /// Re-checks the stored credential against Apple; clears the local
