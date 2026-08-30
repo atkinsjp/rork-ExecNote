@@ -109,6 +109,7 @@ struct PDFSigningEditorView: View {
     @State private var armedProfileId: UUID?
     @State private var isLoading = true
     @State private var isDrawingNew = false
+    @State private var isManagingKit = false
     @State private var isConfirmingFinalize = false
     @State private var isFinalizing = false
     @State private var didFinalize = false
@@ -171,6 +172,12 @@ struct PDFSigningEditorView: View {
                 SignatureCanvasSheet { profile in
                     addProfile(profile)
                 }
+            }
+            .sheet(isPresented: $isManagingKit, onDismiss: {
+                Task { await reloadSavedProfiles() }
+            }) {
+                SignatureManagerView()
+                    .environment(subscriptions)
             }
             .sheet(isPresented: $isConfirmingFinalize) {
                 FinalizeSummarySheet(
@@ -276,6 +283,14 @@ struct PDFSigningEditorView: View {
                     .tracking(1.4)
                     .foregroundStyle(Theme.textTertiary)
                 Spacer()
+                Button {
+                    Haptics.selection()
+                    isManagingKit = true
+                } label: {
+                    Label("Manage", systemImage: "square.grid.2x2")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Theme.textSecondary)
+                }
                 Button {
                     isDrawingNew = true
                     armedProfileId = nil
@@ -448,6 +463,22 @@ struct PDFSigningEditorView: View {
         profiles = kit
         rebuildImageCache()
         isLoading = false
+    }
+
+    /// Re-syncs saved profiles after the Signature Manager closes, keeping
+    /// the session-only dynamic stamps at the end of the kit.
+    private func reloadSavedProfiles() async {
+        let saved = await SignatureStorageService.shared.loadProfiles()
+        let session = profiles.filter {
+            $0.id == StampFactory.dateStampID || $0.id == StampFactory.flagID
+        }
+        profiles = saved + session
+        rebuildImageCache()
+
+        // A deleted profile can no longer be armed for placement.
+        if let armed = armedProfileId, !profiles.contains(where: { $0.id == armed }) {
+            armedProfileId = nil
+        }
     }
 
     private func rebuildImageCache() {
