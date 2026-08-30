@@ -244,12 +244,17 @@ struct VaultEmptyState: View {
 // MARK: - Multi-select action bar
 
 /// Bottom action bar pinned over the safe area while multi-select is active:
-/// exit, selected count with a select-all toggle, and a destructive bulk
-/// delete pill. Visually mirrors the capture bar's fading ink gradient.
+/// exit, selected count with a select-all toggle, a bulk ZIP export button,
+/// and a destructive bulk delete pill. Visually mirrors the capture bar's
+/// fading ink gradient.
 struct DocumentSelectionBar: View {
     let count: Int
     let isAllSelected: Bool
+    /// True while the ZIP archive is being built — swaps the export icon for a
+    /// progress spinner and blocks further taps.
+    var isExporting = false
     let onToggleAll: () -> Void
+    let onExport: () -> Void
     let onDelete: () -> Void
     let onCancel: () -> Void
 
@@ -283,6 +288,26 @@ struct DocumentSelectionBar: View {
             }
 
             Spacer(minLength: 8)
+
+            Button(action: onExport) {
+                Group {
+                    if isExporting {
+                        ProgressView()
+                            .tint(Theme.amber)
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Theme.amber)
+                    }
+                }
+                .frame(width: 40, height: 40)
+                .background { Circle().fill(Theme.amber.opacity(0.14)) }
+                .overlay { Circle().strokeBorder(Theme.amber.opacity(0.35), lineWidth: 1) }
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(count == 0 || isExporting)
+            .opacity(count == 0 ? 0.45 : 1)
+            .accessibilityLabel("Export \(count) selected \(count == 1 ? "document" : "documents") as a ZIP archive")
 
             Button(action: onDelete) {
                 Label("Delete", systemImage: "trash")

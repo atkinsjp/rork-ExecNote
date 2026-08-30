@@ -24,6 +24,12 @@ struct FolderDetailView: View {
     @State private var selectedIds: Set<String> = []
     @State private var isConfirmingSelectionDelete = false
 
+    // Bulk ZIP export of the current selection.
+    @State private var isExportingZip = false
+    @State private var sharedZipURL: URL?
+    @State private var isShowingZipError = false
+    @State private var zipExportErrorMessage = ""
+
     // Upload flow — camera capture and photo import preset to this folder.
     @State private var isUploading = false
     @State private var isShowingCamera = false
@@ -325,7 +331,9 @@ struct FolderDetailView: View {
                 DocumentSelectionBar(
                     count: selectedIds.count,
                     isAllSelected: !contents.isEmpty && selectedIds.count == contents.count,
+                    isExporting: isExportingZip,
                     onToggleAll: toggleSelectAll,
+                    onExport: exportSelected,
                     onDelete: { isConfirmingSelectionDelete = true },
                     onCancel: exitSelection
                 )
@@ -349,6 +357,15 @@ struct FolderDetailView: View {
             guard !unlocked else { return }
             isSelecting = false
             selectedIds.removeAll()
+        }
+        .sheet(item: $sharedZipURL) { url in
+            ShareSheet(items: [url])
+                .ignoresSafeArea()
+        }
+        .alert("Couldn't create archive", isPresented: $isShowingZipError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(zipExportErrorMessage)
         }
     }
 
@@ -387,6 +404,27 @@ struct FolderDetailView: View {
     private func exitSelection() {
         withAnimation(Theme.soft) { isSelecting = false }
         selectedIds.removeAll()
+    }
+
+    private func exportSelected() {
+        guard !isExportingZip else { return }
+        let targets = store.documents.filter { selectedIds.contains($0.id) }
+        guard !targets.isEmpty else { return }
+        Haptics.impact(.medium)
+        isExportingZip = true
+        Task {
+            do {
+                let archive = try await BulkZipExportService.buildZip(for: targets)
+                isExportingZip = false
+                Haptics.success()
+                sharedZipURL = archive
+            } catch {
+                isExportingZip = false
+                Haptics.warning()
+                zipExportErrorMessage = error.localizedDescription
+                isShowingZipError = true
+            }
+        }
     }
 
     private var summary: some View {

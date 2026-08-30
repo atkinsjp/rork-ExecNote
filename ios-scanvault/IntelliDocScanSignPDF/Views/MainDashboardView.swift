@@ -40,6 +40,12 @@ struct MainDashboardView: View {
     @State private var selectedIds: Set<String> = []
     @State private var isConfirmingSelectionDelete = false
 
+    // Bulk ZIP export of the current selection.
+    @State private var isExportingZip = false
+    @State private var sharedZipURL: URL?
+    @State private var isShowingZipError = false
+    @State private var zipExportErrorMessage = ""
+
     /// Set by the "Scan & Redact" deep link: after filing, the redaction
     /// studio opens on the freshly captured document.
     @State private var redactAfterScan = false
@@ -85,7 +91,9 @@ struct MainDashboardView: View {
                             count: selectedIds.count,
                             isAllSelected: !selectableDocuments.isEmpty
                                 && selectedIds.count == selectableDocuments.count,
+                            isExporting: isExportingZip,
                             onToggleAll: toggleSelectAll,
+                            onExport: exportSelected,
                             onDelete: { isConfirmingSelectionDelete = true },
                             onCancel: exitSelection
                         )
@@ -203,6 +211,15 @@ struct MainDashboardView: View {
         .onChange(of: store.isSearching) { _, _ in
             // The visible list just changed scope — drop any stale selection.
             exitSelection()
+        }
+        .sheet(item: $sharedZipURL) { url in
+            ShareSheet(items: [url])
+                .ignoresSafeArea()
+        }
+        .alert("Couldn't create archive", isPresented: $isShowingZipError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(zipExportErrorMessage)
         }
     }
 
@@ -758,6 +775,27 @@ struct MainDashboardView: View {
         guard isSelecting || !selectedIds.isEmpty else { return }
         withAnimation(Theme.soft) { isSelecting = false }
         selectedIds.removeAll()
+    }
+
+    private func exportSelected() {
+        guard !isExportingZip else { return }
+        let targets = store.documents.filter { selectedIds.contains($0.id) }
+        guard !targets.isEmpty else { return }
+        Haptics.impact(.medium)
+        isExportingZip = true
+        Task {
+            do {
+                let archive = try await BulkZipExportService.buildZip(for: targets)
+                isExportingZip = false
+                Haptics.success()
+                sharedZipURL = archive
+            } catch {
+                isExportingZip = false
+                Haptics.warning()
+                zipExportErrorMessage = error.localizedDescription
+                isShowingZipError = true
+            }
+        }
     }
 
     // MARK: - Capture bar
