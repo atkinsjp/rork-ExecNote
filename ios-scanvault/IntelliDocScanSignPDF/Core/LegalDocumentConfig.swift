@@ -39,8 +39,9 @@ nonisolated enum LegalDocumentConfig {
     /// Support contact published by the developer account.
     static var supportURL = URL(string: "https://atkinsmedia.io/support")!
 
-    /// Privacy policy shipped with the binary; Remote Config may override it.
-    static var fallbackPrivacyPolicyURL = URL(string: "https://rork.app/privacy")!
+    /// Privacy policy hosted on GitHub Pages from the project's repository
+    /// (atkinsjp/rork-execnote); Remote Config may override it.
+    static var fallbackPrivacyPolicyURL = URL(string: "https://atkinsjp.github.io/rork-execnote/privacy-policy.html")!
 
     // MARK: - Resolution
 
