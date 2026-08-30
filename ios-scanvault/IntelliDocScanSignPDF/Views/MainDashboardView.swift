@@ -130,7 +130,7 @@ struct MainDashboardView: View {
         }
         .tint(Theme.amber)
         .fullScreenCover(isPresented: $isShowingCamera) {
-            DocumentCameraView(
+            CameraCaptureView(
                 onFinish: { images in
                     scanner.finish(with: images, source: .camera)
                     isShowingCamera = false

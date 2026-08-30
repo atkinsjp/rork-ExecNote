@@ -62,7 +62,7 @@ struct ScanReviewView: View {
             }
         }
         .fullScreenCover(isPresented: $isAddingPages) {
-            DocumentCameraView(
+            CameraCaptureView(
                 onFinish: { images in
                     scanner.finish(with: images, source: .camera)
                     isAddingPages = false

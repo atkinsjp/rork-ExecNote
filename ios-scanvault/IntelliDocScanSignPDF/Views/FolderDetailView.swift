@@ -129,7 +129,7 @@ struct FolderDetailView: View {
             Text("New pages are filed straight into this folder.")
         }
         .fullScreenCover(isPresented: $isShowingCamera) {
-            DocumentCameraView(
+            CameraCaptureView(
                 onFinish: { images in
                     scanner.finish(with: images, source: .camera)
                     isShowingCamera = false
