@@ -28,8 +28,10 @@ enum Theme {
     })
 
     // MARK: Accent
-    static let amber = Color(hex: "E8A33D")
-    static let amberBright = Color(hex: "F7CD7C")
+    // Amber resolves darker in Light mode: the raw E8A33D/F7CD7C tints only have
+    // ~2:1 contrast on the warm-paper surfaces, so text set in them is unreadable.
+    static let amber = adaptive("9C6A10", "E8A33D")
+    static let amberBright = adaptive("8A6221", "F7CD7C")
     static let amberDim = Color(hex: "8A6221")
 
     // MARK: Content
