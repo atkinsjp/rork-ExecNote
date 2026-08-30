@@ -120,6 +120,9 @@ struct PDFSigningEditorView: View {
 
     @AppStorage("signerName") private var signerName = ""
     @AppStorage("signerEmail") private var signerEmail = ""
+    /// When on, every placed signature or initials stamp is accompanied by a
+    /// current-date stamp just below it.
+    @AppStorage("signingAutoDate") private var autoDateOn = true
 
     private var live: ScannedDocument {
         store.documents.first { $0.id == document.id } ?? document
@@ -283,6 +286,15 @@ struct PDFSigningEditorView: View {
                     .tracking(1.4)
                     .foregroundStyle(Theme.textTertiary)
                 Spacer()
+                Button {
+                    autoDateOn.toggle()
+                    Haptics.selection()
+                } label: {
+                    Label("Auto-date", systemImage: autoDateOn ? "calendar.badge.checkmark" : "calendar")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(autoDateOn ? Theme.amber : Theme.textTertiary)
+                }
+                .accessibilityLabel(autoDateOn ? "Auto-date is on — today's date is added under each signature" : "Auto-date is off")
                 Button {
                     Haptics.selection()
                     isManagingKit = true
@@ -552,9 +564,49 @@ struct PDFSigningEditorView: View {
             placements.append(stamp)
             selectedStampId = stamp.id
         }
+
+        if autoDateOn, profile.type == .signature || profile.type == .initials {
+            appendAutoDate(below: rect, pageIndex: pageIndex)
+        }
+
         Haptics.impact(.medium)
         // Tap-to-place is single-shot; dragging can continue from the kit.
         if armedProfileId == profileId { armedProfileId = nil }
+    }
+
+    /// Drops the session date stamp centered just below a freshly placed
+    /// signature. It stays a regular, movable stamp the user can adjust.
+    private func appendAutoDate(below signatureRect: CGRect, pageIndex: Int) {
+        guard let dateImage = imagesById[StampFactory.dateStampID],
+              pageIndex < pages.count
+        else { return }
+
+        let pageSize = pages[pageIndex].size
+        let pageAspect = pageSize.width / pageSize.height
+        let stampAspect = dateImage.size.width / max(dateImage.size.height, 1)
+
+        // Scale with the signature so a small initial gets a small date.
+        let widthNorm = min(0.22, max(0.10, signatureRect.width * 0.6))
+        let heightNorm = widthNorm * pageAspect / stampAspect
+        let rect = CGRect(
+            x: signatureRect.midX - widthNorm / 2,
+            y: signatureRect.maxY + 0.008,
+            width: widthNorm,
+            height: heightNorm
+        ).clampedToPage
+
+        let title = profiles.first(where: { $0.id == StampFactory.dateStampID })?.title
+            ?? Date.now.formatted(date: .abbreviated, time: .omitted)
+        let stamp = PlacedStamp(data: PlacementData(
+            pageIndex: pageIndex,
+            rect: rect,
+            profileId: StampFactory.dateStampID,
+            profileTitle: title
+        ))
+
+        withAnimation(Theme.flight) {
+            placements.append(stamp)
+        }
     }
 
     private func move(stampId: UUID, delta: CGSize, pageSize: CGSize) {
