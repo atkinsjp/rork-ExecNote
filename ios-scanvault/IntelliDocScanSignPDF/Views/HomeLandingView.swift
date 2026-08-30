@@ -45,10 +45,22 @@ struct HomeLandingView: View {
                     .foregroundStyle(Theme.textPrimary)
                     .padding(.top, 26)
 
-                Text("Your paper, filed and safe.")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Theme.textSecondary)
-                    .padding(.top, 6)
+                // Capability subtitle: tells a browsing user exactly what the app
+                // does, at a glance-able size right under the animated mark.
+                Group {
+                    Text("Scan, Redact, Sign, File, Transcribe Handwriting, ")
+                        .foregroundStyle(Theme.textPrimary)
+                    + Text("and More")
+                        .foregroundStyle(Theme.amber)
+                }
+                .font(.system(size: 21, weight: .semibold, design: .serif))
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+                .padding(.horizontal, 30)
+                .padding(.top, 12)
+                .opacity(featuresRevealed ? 1 : 0)
+                .offset(y: featuresRevealed ? 0 : 10)
+                .animation(Theme.soft.delay(0.15), value: featuresRevealed)
 
                 // Amber keystone divider echoing the Welcome page header.
                 HStack(spacing: 5) {
