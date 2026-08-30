@@ -7,7 +7,7 @@
       "framework": "swift",
       "settings": {
         "displayName": "IntelliDoc: Scan, Sign, PDF",
-        "iosBundleId": "com.atkinsmedia.intellidoc"
+        "iosBundleId": "com.atkinsmedia.IntelliDoc"
       }
     }
   ]
