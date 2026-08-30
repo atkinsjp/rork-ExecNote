@@ -149,6 +149,10 @@ final class PrivacyComplianceManager {
             report.append("Cloud sync not configured — nothing existed remotely.")
         }
 
+        // --- 1b. iCloud Drive mirror (best effort) ---------------------------
+        await ICloudSyncService.shared.wipeContainer()
+        report.append("iCloud Drive copies erased.")
+
         // --- 2. Local sandbox ---------------------------------------------
         OfflineSyncCoordinator.shared.purgePendingData()
 

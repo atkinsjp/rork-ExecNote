@@ -39,6 +39,7 @@ struct SettingsView: View {
                         appearanceSection
                         learnSection
                         signatureKitSection
+                        iCloudSection
                         subscriptionSection
                         accountSection
                         siriSection
@@ -162,6 +163,82 @@ struct SettingsView: View {
             .buttonStyle(PressableStyle(scale: 0.98))
             .accessibilityLabel("Manage saved signatures")
         }
+    }
+
+    // MARK: - iCloud sync
+
+    private var iCloudStatusText: String {
+        let cloud = ICloudSyncService.shared
+        if !cloud.isEnabled { return "Off — scans stay on this device only" }
+        switch cloud.availability {
+        case .checking: return "Checking your iCloud account…"
+        case .unavailable: return "Sign in to iCloud in Settings to enable sync"
+        case .available:
+            if cloud.isSyncing { return "Syncing…" }
+            if let last = cloud.lastSyncAt {
+                return "Synced \(last.formatted(.relative(presentation: .named)))"
+            }
+            return "Ready — syncs automatically in the background"
+        }
+    }
+
+    /// Automatic iCloud Drive sync of the whole vault. Storage is the user's
+    /// own iCloud account, so this stays free for every tier; the Firebase
+    /// lane (cross-platform web access) remains the Pro capability.
+    private var iCloudSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "ICLOUD SYNC")
+
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Theme.amber.opacity(0.14))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "icloud.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Theme.amber)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Sync across devices")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Theme.textPrimary)
+                    Text(iCloudStatusText)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.textSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                Toggle("iCloud Sync", isOn: Binding(
+                    get: { ICloudSyncService.shared.isEnabled },
+                    set: { enabled in
+                        Haptics.selection()
+                        ICloudSyncService.shared.isEnabled = enabled
+                        if enabled { store.syncNowToICloud() }
+                    }
+                ))
+                .labelsHidden()
+                .tint(Theme.amber)
+                .disabled(ICloudSyncService.shared.availability != .available)
+                .accessibilityLabel("iCloud sync")
+            }
+            .padding(14)
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Theme.surfaceHigh)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Theme.hairline, lineWidth: 1)
+            }
+
+            Text("Every scan is mirrored into your private iCloud Drive and reappears on your other devices automatically. Apple encrypts the transfer end to end; recognized text never leaves this device.")
+                .font(.system(size: 11))
+                .foregroundStyle(Theme.textTertiary)
+        }
+        .task { await ICloudSyncService.shared.refreshAvailability() }
     }
 
     // MARK: - Getting started

@@ -42,6 +42,7 @@ final class VaultStore {
     private let pdf = PDFManager.shared
     private let logger = Logger(subsystem: "app.rork.scanvault", category: "vault")
     private var realtimeTask: Task<Void, Never>?
+    private var iCloudImportTask: Task<Void, Never>?
     private let userId: String
 
     init(
@@ -94,6 +95,7 @@ final class VaultStore {
         await refreshThumbnails()
         await updateWidgetSnapshot()
         startRealtimeSync()
+        startICloudSync()
     }
 
     private func startRealtimeSync() {
@@ -106,6 +108,87 @@ final class VaultStore {
                 await self.merge(snapshot)
             }
         }
+    }
+
+    // MARK: - iCloud Drive sync
+
+    /// Starts the iCloud mirror: resolves the user's container and imports
+    /// anything that arrives from other devices.
+    private func startICloudSync() {
+        let cloud = ICloudSyncService.shared
+        cloud.start()
+        iCloudImportTask = Task { [weak self] in
+            for await manifest in cloud.incomingManifests {
+                await self?.mergeICloud(manifest)
+            }
+        }
+    }
+
+    /// Pull-side merge for a manifest written on another device: unknown
+    /// documents are imported (PDF copied into the local store), local copies
+    /// always win for documents that already exist, and tombstones remove
+    /// scans deleted elsewhere.
+    private func mergeICloud(_ manifest: ICloudManifest, isRetry: Bool = false) async {
+        guard isBootstrapped else { return }
+        let cloud = ICloudSyncService.shared
+        var changed = false
+        var failedImports = 0
+
+        for folder in manifest.folders where !folders.contains(where: { $0.id == folder.id }) {
+            folders.append(folder)
+            changed = true
+        }
+
+        for (deletedId, deletedAt) in manifest.tombstones {
+            guard let index = documents.firstIndex(where: { $0.id == deletedId }),
+                  documents[index].createdAt < deletedAt
+            else { continue }
+            let removed = documents[index]
+            documents.remove(at: index)
+            syncStates[removed.id] = nil
+            thumbnails[removed.id] = nil
+            SpotlightIndexer.remove(documentId: removed.id)
+            await pdf.delete(documentId: removed.id)
+            changed = true
+        }
+
+        for record in manifest.documents {
+            let remote = record.document
+            if documents.contains(where: { $0.id == remote.id }) { continue }
+            if cloud.isTombstoned(documentId: remote.id) || manifest.tombstones[remote.id] != nil { continue }
+
+            guard let pdfData = await cloud.pdfData(documentId: remote.id),
+                  let url = try? await pdf.save(pdfData, documentId: remote.id)
+            else {
+                // The PDF may still be transferring from iCloud; retry once.
+                failedImports += 1
+                continue
+            }
+
+            var imported = remote
+            imported.localURL = url
+            documents.append(imported)
+            syncStates[imported.id] = .synced
+            thumbnails[imported.id] = await pdf.thumbnail(for: url)
+            SpotlightIndexer.index(imported)
+            changed = true
+        }
+
+        if changed {
+            documents.sort { $0.createdAt > $1.createdAt }
+            await persist()
+        }
+        if failedImports > 0, !isRetry {
+            try? await Task.sleep(for: .seconds(8))
+            if let retry = await cloud.currentManifest() {
+                await mergeICloud(retry, isRetry: true)
+            }
+        }
+    }
+
+    /// One-shot reconciliation used right after the user enables syncing.
+    func syncNowToICloud() {
+        ICloudSyncService.shared.syncVault(folders: folders, documents: documents)
     }
 
     /// Remote wins for records we do not know about; local files are preserved.
@@ -140,6 +223,9 @@ final class VaultStore {
     private func persist() async {
         guard let archive else { return }
         await archive.save(.init(folders: folders, documents: documents))
+        // Local-first: every vault mutation also lands in the user's iCloud
+        // Drive (the service debounces bursts and no-ops when unavailable).
+        ICloudSyncService.shared.syncVault(folders: folders, documents: documents)
     }
 
     /// Clears every in-memory trace of the vault. Called by the compliance
@@ -303,8 +389,19 @@ final class VaultStore {
         documents.reduce(0) { $0 + $1.pageCount }
     }
 
+    /// Per-document sync badge. The Firebase lane wins when it reports real
+    /// activity; otherwise the iCloud Drive mirror decides (documents whose
+    /// PDF is mirrored show as synced even without a Firebase backend).
     func syncState(for document: ScannedDocument) -> SyncState {
-        syncStates[document.id] ?? .localOnly
+        if let state = syncStates[document.id], state != .localOnly {
+            return state
+        }
+        let cloud = ICloudSyncService.shared
+        if cloud.isMirrored(documentId: document.id) { return .synced }
+        if cloud.isActive, cloud.isSyncing, document.localURL != nil {
+            return .uploading(progress: 0.5)
+        }
+        return syncStates[document.id] ?? .localOnly
     }
 
     // MARK: - Folders
@@ -567,6 +664,7 @@ final class VaultStore {
         documents.removeAll { $0.id == document.id }
         syncStates[document.id] = nil
         thumbnails[document.id] = nil
+        ICloudSyncService.shared.recordDeletion(documentId: document.id)
         SpotlightIndexer.remove(documentId: document.id)
         Task { await updateWidgetSnapshot() }
         Task { [pdf, sync, userId] in
@@ -589,6 +687,7 @@ final class VaultStore {
             syncStates[id] = nil
             thumbnails[id] = nil
             SpotlightIndexer.remove(documentId: id)
+            ICloudSyncService.shared.recordDeletion(documentId: id)
         }
 
         Task { await updateWidgetSnapshot() }
