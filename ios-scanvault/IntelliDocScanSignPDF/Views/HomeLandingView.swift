@@ -30,9 +30,15 @@ struct HomeLandingView: View {
 
                 BrandMark()
                     .frame(width: 148, height: 148)
-                    .scanSweep(active: isLogoLit)
-                    .shadow(color: Theme.amber.opacity(isLogoLit ? 0.22 : 0), radius: 34, y: 12)
-                    .animation(Theme.flight, value: isLogoLit)
+                    // Ambient depth for the icon card.
+                    .shadow(color: Color.black.opacity(0.18), radius: 24, y: 12)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 32, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                    }
+                    // Realistic optical scanner beam, tightly clipped to the card.
+                    .overlay { HeroScannerBeam(isLit: isLogoLit) }
+                    .animation(Theme.soft, value: isLogoLit)
 
                 Text("IntelliDoc")
                     .font(.system(size: 42, weight: .bold, design: .serif))
@@ -59,21 +65,22 @@ struct HomeLandingView: View {
                         VStack(spacing: 7) {
                             Image(systemName: feature.symbol)
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(Theme.amber)
+                                .foregroundStyle(Color(hex: "E5A93C"))
                                 .symbolEffect(.bounce, value: featuresRevealed)
                             Text(feature.label)
-                                .font(Theme.mono(.caption2, weight: .semibold))
-                                .foregroundStyle(Theme.textSecondary)
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Color.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 72)
                         .background {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Theme.surface.opacity(0.85))
+                                .fill(Color.white)
+                                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 4)
                         }
                         .overlay {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Theme.hairline, lineWidth: 1)
+                                .strokeBorder(Color.black.opacity(0.04), lineWidth: 1)
                         }
                         .opacity(featuresRevealed ? 1 : 0)
                         .offset(y: featuresRevealed ? 0 : 16)
@@ -99,22 +106,35 @@ struct HomeLandingView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
                         .background {
-                            Capsule().fill(
-                                LinearGradient(
-                                    colors: [Theme.amberBright, Theme.amber],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Theme.amberBright, Theme.amber],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
+                                // Inner highlight rim: bright lip at the top
+                                // edge melting into the gradient below.
+                                .overlay {
+                                    Capsule().stroke(
+                                        LinearGradient(
+                                            colors: [.white.opacity(0.5), .clear],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        ),
+                                        lineWidth: 1
+                                    )
+                                }
                         }
                         .shadow(color: Theme.amber.opacity(0.35), radius: 18, y: 8)
                 }
                 .buttonStyle(PressableStyle(scale: 0.97))
                 .padding(.horizontal, 30)
 
-                Label("Private by design — pages never leave this device uninvited", systemImage: "lock.shield.fill")
-                    .font(Theme.mono(.caption2))
-                    .foregroundStyle(Theme.textTertiary)
+                Label("Private by design • All processing stays on your device.", systemImage: "lock.shield.fill")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.secondary.opacity(0.8))
                     .padding(.top, 16)
                     .padding(.bottom, 22)
             }
@@ -125,6 +145,81 @@ struct HomeLandingView: View {
             try? await Task.sleep(for: .milliseconds(0.45))
             withAnimation(Theme.flight) { featuresRevealed = true }
             Haptics.selection()
+        }
+    }
+}
+
+// MARK: - Hero scanner beam
+
+/// Realistic optical scanner beam for the welcome hero: a 1.5pt white-gold
+/// core line, a 35pt gradient light trail behind the direction of travel,
+/// and a soft blurred ambient glow riding the scan head. The beam eases up
+/// and down (2.2s per sweep, ease-in-out) with a slight lingering pause at
+/// each bound, and is hard-clipped to the dark card's 32pt rounded corners.
+private struct HeroScannerBeam: View {
+    let isLit: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var beamY: CGFloat = -Self.travel
+    @State private var isMovingDown = true
+
+    /// Card half-height minus an inset so the beam never kisses the corners.
+    private static let travel: CGFloat = 58
+    private static let trailHeight: CGFloat = 35
+
+    var body: some View {
+        ZStack {
+            // Ambient glow riding the scan head.
+            Capsule()
+                .fill(Color(hex: "FFC533").opacity(0.55))
+                .frame(height: 5)
+                .frame(maxWidth: .infinity)
+                .blur(radius: 4)
+                .offset(y: beamY)
+
+            // Light trail behind the scan direction.
+            LinearGradient(
+                colors: [Color(hex: "FFB800").opacity(0.35), .clear],
+                startPoint: isMovingDown ? .bottom : .top,
+                endPoint: isMovingDown ? .top : .bottom
+            )
+            .frame(height: Self.trailHeight)
+            .frame(maxWidth: .infinity)
+            .offset(y: beamY + (isMovingDown ? -Self.trailHeight / 2 : Self.trailHeight / 2))
+
+            // High-intensity core beam: bright white-yellow center,
+            // dissolving to nothing at the card edges.
+            LinearGradient(
+                colors: [
+                    Color(hex: "FFB800").opacity(0),
+                    Color(hex: "FFF7DB"),
+                    Color(hex: "FFC533"),
+                    Color(hex: "FFB800").opacity(0),
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(height: 1.5)
+            .frame(maxWidth: .infinity)
+            .offset(y: beamY)
+        }
+        .blendMode(.plusLighter)
+        .allowsHitTesting(false)
+        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+        .opacity(reduceMotion ? (isLit ? 0.6 : 0) : (isLit ? 1 : 0))
+        .animation(Theme.soft, value: isLit)
+        .task(id: isLit) {
+            guard isLit, !reduceMotion else { return }
+            try? await Task.sleep(for: .seconds(0.55))
+            while !Task.isCancelled {
+                isMovingDown = true
+                withAnimation(.easeInOut(duration: 2.2)) { beamY = Self.travel }
+                try? await Task.sleep(for: .seconds(2.6))
+                isMovingDown = false
+                withAnimation(.easeInOut(duration: 2.2)) { beamY = -Self.travel }
+                try? await Task.sleep(for: .seconds(2.6))
+            }
         }
     }
 }
@@ -151,12 +246,7 @@ struct BrandMark: View {
                         .strokeBorder(Theme.hairline, lineWidth: 1.5)
                 }
 
-            // Folder tab.
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color(hex: "2B2F39"))
-                .frame(width: 54, height: 16)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .offset(x: -38, y: -58)
+            // Folder tab (kept inside the card so nothing pokes above it).
 
             // Stacked pages peeking out.
             VStack(spacing: 5) {
