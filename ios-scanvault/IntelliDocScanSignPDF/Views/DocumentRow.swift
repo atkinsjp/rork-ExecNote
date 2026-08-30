@@ -13,6 +13,11 @@ struct DocumentRow: View {
     var showsFolder: Bool = false
     /// Full-text match snippet shown under the metadata row (search results).
     var snippet: String?
+    /// When true the row shows a leading check indicator and taps toggle
+    /// selection instead of navigating (multi-select mode).
+    var isSelectionMode: Bool = false
+    /// Check state while `isSelectionMode` is active.
+    var isSelected: Bool = false
     let action: () -> Void
 
     @State private var isConfirmingDelete = false
@@ -41,8 +46,36 @@ struct DocumentRow: View {
     }
 
     var body: some View {
+        Group {
+            if isSelectionMode {
+                card
+            } else {
+                card
+                    .intelliDocDrag(document)
+                    .contextMenu { menuContent }
+            }
+        }
+        .confirmationDialog(
+            "Delete “\(document.title)”?",
+            isPresented: $isConfirmingDelete,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Document", role: .destructive) {
+                withAnimation(Theme.soft) { store.delete(document) }
+                Haptics.warning()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("The PDF is removed from this device and from your cloud vault.")
+        }
+    }
+
+    private var card: some View {
         Button(action: action) {
             HStack(spacing: 14) {
+                if isSelectionMode {
+                    selectionIndicator
+                }
                 PageThumbnail(
                     image: store.thumbnail(for: document),
                     pageCount: document.pageCount,
@@ -106,14 +139,20 @@ struct DocumentRow: View {
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.05), lineWidth: 1)
+                    .strokeBorder(
+                        isSelectionMode && isSelected
+                            ? Theme.amber.opacity(0.55)
+                            : Color.white.opacity(0.05),
+                        lineWidth: 1
+                    )
             }
         }
         .buttonStyle(PressableStyle(scale: 0.98))
-        // Long-press lift: drop onto a folder tile to re-file, or drag out
-        // of the app to export the PDF straight into another app.
-        .intelliDocDrag(document)
-        .contextMenu {
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var menuContent: some View {
+        Group {
             ForEach(store.folders.filter { $0.id != document.folderId }) { folder in
                 Button {
                     store.move(document, to: folder.id)
@@ -136,19 +175,26 @@ struct DocumentRow: View {
                 Label("Delete", systemImage: "trash")
             }
         }
-        .confirmationDialog(
-            "Delete “\(document.title)”?",
-            isPresented: $isConfirmingDelete,
-            titleVisibility: .visible
-        ) {
-            Button("Delete Document", role: .destructive) {
-                withAnimation(Theme.soft) { store.delete(document) }
-                Haptics.warning()
+    }
+
+    /// Leading check indicator shown while multi-select is active.
+    private var selectionIndicator: some View {
+        ZStack {
+            Circle()
+                .strokeBorder(
+                    isSelected ? Theme.amber : Color.white.opacity(0.28),
+                    lineWidth: 1.5
+                )
+            if isSelected {
+                Circle().fill(Theme.amber)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Color(hex: "1A1206"))
             }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("The PDF is removed from this device and from your cloud vault.")
         }
+        .frame(width: 26, height: 26)
+        .animation(Theme.snap, value: isSelected)
+        .accessibilityHidden(true)
     }
 }
 

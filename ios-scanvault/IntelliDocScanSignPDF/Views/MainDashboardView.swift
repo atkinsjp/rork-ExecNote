@@ -35,6 +35,11 @@ struct MainDashboardView: View {
     @State private var isShowingPaywall = false
     @State private var isShowingSettings = false
 
+    // Multi-select mode for bulk document actions.
+    @State private var isSelecting = false
+    @State private var selectedIds: Set<String> = []
+    @State private var isConfirmingSelectionDelete = false
+
     /// Set by the "Scan & Redact" deep link: after filing, the redaction
     /// studio opens on the freshly captured document.
     @State private var redactAfterScan = false
@@ -74,7 +79,21 @@ struct MainDashboardView: View {
                     .padding(.bottom, 28)
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .safeAreaInset(edge: .bottom) { captureBar }
+                .safeAreaInset(edge: .bottom) {
+                    if isSelecting {
+                        DocumentSelectionBar(
+                            count: selectedIds.count,
+                            isAllSelected: !selectableDocuments.isEmpty
+                                && selectedIds.count == selectableDocuments.count,
+                            onToggleAll: toggleSelectAll,
+                            onDelete: { isConfirmingSelectionDelete = true },
+                            onCancel: exitSelection
+                        )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else {
+                        captureBar
+                    }
+                }
             }
             .overlayPreferenceValue(FolderAnchorKey.self) { anchors in
                 GeometryReader { proxy in
@@ -168,6 +187,22 @@ struct MainDashboardView: View {
             if phase != .active {
                 locks.lockAll()
             }
+        }
+        .confirmationDialog(
+            "Delete \(selectedIds.count) \(selectedIds.count == 1 ? "document" : "documents")?",
+            isPresented: $isConfirmingSelectionDelete,
+            titleVisibility: .visible
+        ) {
+            Button("Delete \(selectedIds.count) \(selectedIds.count == 1 ? "Document" : "Documents")", role: .destructive) {
+                deleteSelected()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("They are removed from this device and from your cloud vault.")
+        }
+        .onChange(of: store.isSearching) { _, _ in
+            // The visible list just changed scope — drop any stale selection.
+            exitSelection()
         }
     }
 
@@ -431,7 +466,12 @@ struct MainDashboardView: View {
 
     private var recentsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: "Recent scans")
+            HStack {
+                SectionHeader(title: "Recent scans")
+                if !isSelecting, !store.recentDocuments.isEmpty {
+                    selectPill
+                }
+            }
 
             if store.recentDocuments.isEmpty {
                 VaultEmptyState(
@@ -442,8 +482,16 @@ struct MainDashboardView: View {
             } else {
                 VStack(spacing: 10) {
                     ForEach(store.recentDocuments) { document in
-                        DocumentRow(document: document) {
-                            path.append(.document(document))
+                        DocumentRow(
+                            document: document,
+                            isSelectionMode: isSelecting,
+                            isSelected: selectedIds.contains(document.id)
+                        ) {
+                            if isSelecting {
+                                toggleSelection(document.id)
+                            } else {
+                                path.append(.document(document))
+                            }
                         }
                     }
                 }
@@ -453,7 +501,12 @@ struct MainDashboardView: View {
 
     private var searchResults: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: "Results", trailing: "\(store.searchResults.count)")
+            HStack {
+                SectionHeader(title: "Results", trailing: "\(store.searchResults.count)")
+                if !isSelecting, !store.searchResults.isEmpty {
+                    selectPill
+                }
+            }
 
             searchFilterRow
 
@@ -469,9 +522,15 @@ struct MainDashboardView: View {
                         DocumentRow(
                             document: document,
                             showsFolder: true,
-                            snippet: store.searchSnippet(for: document)
+                            snippet: store.searchSnippet(for: document),
+                            isSelectionMode: isSelecting,
+                            isSelected: selectedIds.contains(document.id)
                         ) {
-                            path.append(.document(document))
+                            if isSelecting {
+                                toggleSelection(document.id)
+                            } else {
+                                path.append(.document(document))
+                            }
                         }
                     }
                 }
@@ -639,6 +698,66 @@ struct MainDashboardView: View {
         .padding(.vertical, 6)
         .background { Capsule().fill(Theme.amber.opacity(0.1)) }
         .overlay { Capsule().strokeBorder(Theme.amber.opacity(0.35), lineWidth: 1) }
+    }
+
+    // MARK: - Multi-select
+
+    /// The list currently on screen — selection scope follows it (recents or
+    /// search results).
+    private var selectableDocuments: [ScannedDocument] {
+        store.isSearching ? store.searchResults : store.recentDocuments
+    }
+
+    private var selectPill: some View {
+        Button {
+            Haptics.selection()
+            withAnimation(Theme.soft) { isSelecting = true }
+        } label: {
+            Text("Select")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Theme.amberBright)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background { Capsule().fill(Theme.amber.opacity(0.14)) }
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("Select multiple documents")
+    }
+
+    private func toggleSelection(_ id: String) {
+        Haptics.selection()
+        withAnimation(Theme.snap) {
+            if selectedIds.contains(id) {
+                selectedIds.remove(id)
+            } else {
+                selectedIds.insert(id)
+            }
+        }
+    }
+
+    private func toggleSelectAll() {
+        Haptics.selection()
+        withAnimation(Theme.snap) {
+            if selectedIds.count == selectableDocuments.count {
+                selectedIds.removeAll()
+            } else {
+                selectedIds = Set(selectableDocuments.map(\.id))
+            }
+        }
+    }
+
+    private func deleteSelected() {
+        let targets = store.documents.filter { selectedIds.contains($0.id) }
+        guard !targets.isEmpty else { return }
+        withAnimation(Theme.soft) { store.deleteDocuments(targets) }
+        Haptics.warning()
+        exitSelection()
+    }
+
+    private func exitSelection() {
+        guard isSelecting || !selectedIds.isEmpty else { return }
+        withAnimation(Theme.soft) { isSelecting = false }
+        selectedIds.removeAll()
     }
 
     // MARK: - Capture bar

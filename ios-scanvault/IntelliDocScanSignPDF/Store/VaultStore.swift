@@ -561,6 +561,31 @@ final class VaultStore {
         }
     }
 
+    /// Bulk delete from multi-select: removes every listed document at once,
+    /// clears their sync/thumbnail state, then destroys local PDFs and cloud
+    /// copies in the background before persisting the slimmed archive.
+    func deleteDocuments(_ targets: [ScannedDocument]) {
+        let ids = Set(targets.map(\.id))
+        guard !ids.isEmpty else { return }
+
+        documents.removeAll { ids.contains($0.id) }
+        for id in ids {
+            syncStates[id] = nil
+            thumbnails[id] = nil
+            SpotlightIndexer.remove(documentId: id)
+        }
+
+        Task { await updateWidgetSnapshot() }
+        Task { [pdf, sync, userId] in
+            for id in ids {
+                await pdf.delete(documentId: id)
+                try? await sync.deleteDocumentMetadata(id: id, userId: userId)
+                try? await sync.deletePDF(documentId: id, userId: userId)
+            }
+            await persist()
+        }
+    }
+
     // MARK: - Notes Studio
 
     /// Persists the (possibly hand-edited) handwriting transcription with the

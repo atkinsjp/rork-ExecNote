@@ -19,6 +19,11 @@ struct FolderDetailView: View {
 
     @State private var isEditing = false
 
+    // Multi-select mode for bulk document actions.
+    @State private var isSelecting = false
+    @State private var selectedIds: Set<String> = []
+    @State private var isConfirmingSelectionDelete = false
+
     // Upload flow — camera capture and photo import preset to this folder.
     @State private var isUploading = false
     @State private var isShowingCamera = false
@@ -49,6 +54,23 @@ struct FolderDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 12) {
+                    Button {
+                        Haptics.selection()
+                        if isSelecting {
+                            exitSelection()
+                        } else {
+                            withAnimation(Theme.soft) { isSelecting = true }
+                        }
+                    } label: {
+                        Image(systemName: isSelecting ? "checkmark.circle.fill" : "checklist")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(isSelecting ? Theme.amber : Theme.textSecondary)
+                            .frame(width: 32, height: 32)
+                            .background { Circle().fill(Theme.surfaceHigh) }
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel(isSelecting ? "Exit selection mode" : "Select documents")
+
                     Button {
                         Haptics.selection()
                         isUploading = true
@@ -276,11 +298,21 @@ struct FolderDetailView: View {
                 } else {
                     VStack(spacing: 10) {
                         ForEach(contents) { document in
-                            NavigationLink(value: VaultRoute.document(document)) {
-                                DocumentRow(document: document) {}
-                                    .allowsHitTesting(false)
+                            if isSelecting {
+                                DocumentRow(
+                                    document: document,
+                                    isSelectionMode: true,
+                                    isSelected: selectedIds.contains(document.id)
+                                ) {
+                                    toggleSelection(document.id)
+                                }
+                            } else {
+                                NavigationLink(value: VaultRoute.document(document)) {
+                                    DocumentRow(document: document) {}
+                                        .allowsHitTesting(false)
+                                }
+                                .buttonStyle(PressableStyle(scale: 0.98))
                             }
-                            .buttonStyle(PressableStyle(scale: 0.98))
                         }
                     }
                 }
@@ -288,6 +320,73 @@ struct FolderDetailView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
+        .safeAreaInset(edge: .bottom) {
+            if isSelecting {
+                DocumentSelectionBar(
+                    count: selectedIds.count,
+                    isAllSelected: !contents.isEmpty && selectedIds.count == contents.count,
+                    onToggleAll: toggleSelectAll,
+                    onDelete: { isConfirmingSelectionDelete = true },
+                    onCancel: exitSelection
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .confirmationDialog(
+            "Delete \(selectedIds.count) \(selectedIds.count == 1 ? "document" : "documents")?",
+            isPresented: $isConfirmingSelectionDelete,
+            titleVisibility: .visible
+        ) {
+            Button("Delete \(selectedIds.count) \(selectedIds.count == 1 ? "Document" : "Documents")", role: .destructive) {
+                deleteSelected()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("They are removed from this device and from your cloud vault.")
+        }
+        .onChange(of: isUnlocked) { _, unlocked in
+            // A re-sealed folder hides its list — drop the selection with it.
+            guard !unlocked else { return }
+            isSelecting = false
+            selectedIds.removeAll()
+        }
+    }
+
+    // MARK: - Multi-select
+
+    private func toggleSelection(_ id: String) {
+        Haptics.selection()
+        withAnimation(Theme.snap) {
+            if selectedIds.contains(id) {
+                selectedIds.remove(id)
+            } else {
+                selectedIds.insert(id)
+            }
+        }
+    }
+
+    private func toggleSelectAll() {
+        Haptics.selection()
+        withAnimation(Theme.snap) {
+            if selectedIds.count == contents.count {
+                selectedIds.removeAll()
+            } else {
+                selectedIds = Set(contents.map(\.id))
+            }
+        }
+    }
+
+    private func deleteSelected() {
+        let targets = store.documents.filter { selectedIds.contains($0.id) }
+        guard !targets.isEmpty else { return }
+        withAnimation(Theme.soft) { store.deleteDocuments(targets) }
+        Haptics.warning()
+        exitSelection()
+    }
+
+    private func exitSelection() {
+        withAnimation(Theme.soft) { isSelecting = false }
+        selectedIds.removeAll()
     }
 
     private var summary: some View {

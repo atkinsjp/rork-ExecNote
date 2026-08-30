@@ -240,3 +240,74 @@ struct VaultEmptyState: View {
         .padding(.vertical, 44)
     }
 }
+
+// MARK: - Multi-select action bar
+
+/// Bottom action bar pinned over the safe area while multi-select is active:
+/// exit, selected count with a select-all toggle, and a destructive bulk
+/// delete pill. Visually mirrors the capture bar's fading ink gradient.
+struct DocumentSelectionBar: View {
+    let count: Int
+    let isAllSelected: Bool
+    let onToggleAll: () -> Void
+    let onDelete: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: onCancel) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Theme.textSecondary)
+                    .frame(width: 40, height: 40)
+                    .background { Circle().fill(Theme.surfaceHigh) }
+                    .overlay { Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1) }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("Exit selection mode")
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(count) selected")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
+                    .contentTransition(.numericText())
+
+                Button(action: onToggleAll) {
+                    Text(isAllSelected ? "Deselect all" : "Select all")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Theme.amberBright)
+                }
+                .buttonStyle(.plain)
+                .disabled(count == 0 && !isAllSelected)
+                .accessibilityLabel(isAllSelected ? "Deselect all documents" : "Select all documents")
+            }
+
+            Spacer(minLength: 8)
+
+            Button(action: onDelete) {
+                Label("Delete", systemImage: "trash")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(hex: "FFE9E4"))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 11)
+                    .background { Capsule().fill(Color(hex: "E2664F")) }
+                    .shadow(color: Color(hex: "E2664F").opacity(0.4), radius: 10, y: 4)
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(count == 0)
+            .opacity(count == 0 ? 0.45 : 1)
+            .accessibilityLabel("Delete \(count) selected \(count == 1 ? "document" : "documents")")
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 10)
+        .background {
+            LinearGradient(
+                colors: [Theme.ink.opacity(0), Theme.ink.opacity(0.92), Theme.ink],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+        }
+    }
+}
