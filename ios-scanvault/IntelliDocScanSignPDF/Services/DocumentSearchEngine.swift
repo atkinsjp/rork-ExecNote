@@ -61,6 +61,7 @@ nonisolated enum SearchSort: String, CaseIterable, Identifiable, Sendable {
     case titleAZ
     case fileType
     case category
+    case size
 
     var id: String { rawValue }
 
@@ -72,6 +73,7 @@ nonisolated enum SearchSort: String, CaseIterable, Identifiable, Sendable {
         case .titleAZ: "Title A–Z"
         case .fileType: "File type"
         case .category: "Category"
+        case .size: "Largest first"
         }
     }
 }

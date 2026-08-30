@@ -201,17 +201,17 @@ final class VaultStore {
     private func sorted(_ results: [ScannedDocument]) -> [ScannedDocument] {
         switch searchSort {
         case .relevance:
-            results
+            return results
         case .newestFirst:
-            results.sorted { $0.createdAt > $1.createdAt }
+            return results.sorted { $0.createdAt > $1.createdAt }
         case .oldestFirst:
-            results.sorted { $0.createdAt < $1.createdAt }
+            return results.sorted { $0.createdAt < $1.createdAt }
         case .titleAZ:
-            results.sorted {
+            return results.sorted {
                 $0.title.localizedStandardCompare($1.title) == .orderedAscending
             }
         case .fileType:
-            results.sorted {
+            return results.sorted {
                 let lhs = $0.docType ?? "~unfiled"
                 let rhs = $1.docType ?? "~unfiled"
                 if lhs.caseInsensitiveCompare(rhs) == .orderedSame {
@@ -220,7 +220,7 @@ final class VaultStore {
                 return lhs.caseInsensitiveCompare(rhs) == .orderedAscending
             }
         case .category:
-            results.sorted {
+            return results.sorted {
                 let lhs = $0.categoryTag ?? "~uncategorized"
                 let rhs = $1.categoryTag ?? "~uncategorized"
                 if lhs.caseInsensitiveCompare(rhs) == .orderedSame {
@@ -228,6 +228,22 @@ final class VaultStore {
                 }
                 return lhs.caseInsensitiveCompare(rhs) == .orderedAscending
             }
+        case .size:
+            // Resolve each size once up front — disk stats per comparison
+            // would multiply unnecessarily. Cloud-only scans sort last.
+            var sized: [(document: ScannedDocument, bytes: Int64)] = []
+            sized.reserveCapacity(results.count)
+            for document in results {
+                sized.append((document, document.fileSizeOnDisk ?? 0))
+            }
+            return sized
+                .sorted { lhs, rhs in
+                    if lhs.bytes == rhs.bytes {
+                        return lhs.document.createdAt > rhs.document.createdAt
+                    }
+                    return lhs.bytes > rhs.bytes
+                }
+                .map(\.document)
         }
     }
 

@@ -172,6 +172,14 @@ extension ScannedDocument {
         if tags.contains(where: { $0.localizedStandardContains(trimmed) }) { return true }
         return ocrKeywords.contains { $0.localizedStandardContains(trimmed) }
     }
+
+    /// Size in bytes of this document's PDF on this device, read from the
+    /// stored local URL. Nil when the scan isn't stored locally (cloud-only).
+    var fileSizeOnDisk: Int64? {
+        guard let localURL else { return nil }
+        let attrs = try? FileManager.default.attributesOfItem(atPath: localURL.path)
+        return attrs?[.size] as? Int64
+    }
 }
 
 // MARK: - Upload lifecycle

@@ -266,6 +266,12 @@ struct DocumentDetailView: View {
                 .font(Theme.mono(.caption2))
                 .foregroundStyle(Theme.textTertiary)
 
+            if let fileSize = live.fileSizeOnDisk, fileSize > 0 {
+                Text(ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file))
+                    .font(Theme.mono(.caption2))
+                    .foregroundStyle(Theme.textTertiary)
+            }
+
             if live.isRedacted {
                 HStack(spacing: 5) {
                     Image(systemName: "checkmark.shield.fill")
