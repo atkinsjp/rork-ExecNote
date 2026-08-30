@@ -1,0 +1,77 @@
+{
+  "theme": {
+    "style": "An archivist's light table: graphite and charcoal surfaces washed with warm amber lamp glow, as if a desk lamp is raking across a dark studio. Paper-white and cream tones appear as calm counterpoints midway through the deck, giving rhythm between dark trust slides and bright clarity slides. Textures are subtle — fine paper grain, soft volumetric light, matte metal — never glossy or neon. A single deliberate deep-teal shift late in the deck signals the smart, on-device intelligence.",
+    "headlineFont": "font-family: 'Plus Jakarta Sans', sans-serif (@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&display=swap'))",
+    "headlineFontSize": 112,
+    "mockupIds": {
+      "iphone": "deep-blue",
+      "ipad": "space-gray"
+    },
+    "palette": {
+      "primary": "#1C1B19",
+      "secondary": "#F5EFE3",
+      "accent": "#F2A33C"
+    },
+    "layoutId": "hero-clipped"
+  },
+  "slides": [
+    {
+      "label": "Home Hero",
+      "backgroundPrompt": "Abstract digital art of a vast graphite expanse with a wide radial bloom of warm amber and honey light swelling from the lower center, fading outward into deep charcoal and near-black at the corners. Soft volumetric haze and a faint sweep of pale cream light drift across the middle, with the upper third kept dark and calm for text. Fine film grain and gentle depth-of-field softness at the edges, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/ec95b10e-ef95-4b21-8ffd-9fc4dd0bbe5d.png"
+    },
+    {
+      "label": "Scan Review",
+      "backgroundPrompt": "Abstract digital art of a soft cream and paper-white gradient field with a warm amber vignette hugging the outer edges, lit by diffuse light falling from the top-left. Delicate translucent overlapping planes in oat, sand and pale honey create quiet layered depth toward the center. Very fine tooth-like grain texture, the upper third slightly deeper amber-beige for headline contrast, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/c6320865-3cf1-4b7c-a3a2-57ab8c60efbf.png"
+    },
+    {
+      "label": "Vault Dashboard",
+      "backgroundPrompt": "Abstract digital art of a deep graphite-to-charcoal gradient with a warm amber glow spilling in diagonally from the top-right corner like a distant lamp. Broad soft shadow bands cross the lower frame, and thin ribbons of burnished copper light curve gently through the mid-canvas. Matte metallic texture with subtle grain, upper-left region near-black and uncluttered, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/a5a00303-aa88-462d-ba74-66de61cc3043.png"
+    },
+    {
+      "label": "Document Detail OCR",
+      "backgroundPrompt": "Abstract digital art of flowing silk-like waves in warm amber and golden ochre dissolving downward into deep espresso brown, lit by soft rim light from the right. The waves compress into fine layered folds near the bottom while the top region opens into a calm dark umber field. Subtle dust particles catching light and a whisper of grain, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/da45e908-8c77-416b-9ef0-40cb27292f64.png"
+    },
+    {
+      "label": "Redaction Editor",
+      "backgroundPrompt": "Abstract digital art of a near-black graphite field split by one sharp diagonal streak of intense amber-orange light slicing from lower-left to mid-right, with a crisp glowing edge and soft bloom falloff. Deep matte shadow planes stack behind the streak creating dramatic contrast and depth. The upper portion remains almost entirely black and quiet, fine grain throughout, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/138a95f3-3c75-47a6-8e97-b85ec7b13fb8.png"
+    },
+    {
+      "label": "Signature Editor",
+      "backgroundPrompt": "Abstract digital art of a warm paper-cream and ivory gradient with slow sweeping arcs of soft amber and pale caramel light curving through the lower half. Light falls diffusely from the upper-right, leaving the top band a slightly deeper toasted beige for text legibility. Soft focus blur at the outer edges and a delicate fibrous grain texture, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/48bebd35-9ff8-4ffc-8d93-5b486fd59d2c.png"
+    },
+    {
+      "label": "Handwriting Transcription",
+      "backgroundPrompt": "Abstract digital art of deep teal and slate blue mist layers dissolving into graphite, with a single warm amber glow pooling low on the right edge and bleeding softly upward. Translucent frosted planes overlap at shallow angles, each catching a thin cool highlight. Cinematic volumetric haze, top third deep and calm, subtle grain, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/1943313a-bffd-4d00-8dbf-00f32a66de40.png"
+    },
+    {
+      "label": "Export & Share",
+      "backgroundPrompt": "Abstract digital art of a bold diagonal gradient sweeping from bright amber and marigold in the lower-left to deep charcoal in the upper-right, crossed by long soft light streaks travelling in the same direction. Faint translucent glass bands add layered depth mid-frame with gentle bloom where they intersect. Upper-right corner darkest and calmest, fine grain and edge blur, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/fd401653-689c-46ff-a838-66d600f59599.png"
+    },
+    {
+      "label": "Privacy & Settings",
+      "backgroundPrompt": "Abstract digital art of a near-black graphite void with one small concentrated orb of warm amber light glowing at the lower center, its halo spreading gently outward into deep smoky shadow. Faint concentric rings of dim copper light ripple from the orb, and thin wisps of dark smoke drift upward. The entire upper half is deep and empty, subtle grain and soft vignette, 8K quality, ultra smooth gradients, premium feel, no text, no letters, no UI elements, no device mockups.",
+      "backgroundUrl": "https://r2-pub.rork.com/app-store-screenshots/034a0413-ee63-461a-8747-39d0ddf44568.png"
+    }
+  ],
+  "headlines": {
+    "en": {
+      "Home Hero": "Scan Documents<br>Instantly",
+      "Scan Review": "Flawless Scans<br>Every Time",
+      "Vault Dashboard": "Your Entire<br>Paper Vault",
+      "Document Detail OCR": "Search Inside<br>Every Page",
+      "Redaction Editor": "Redact<br>Private Info",
+      "Signature Editor": "Sign PDFs<br>in Seconds",
+      "Handwriting Transcription": "Transcribe<br>Handwriting",
+      "Export & Share": "Export &<br>Share Anywhere",
+      "Privacy & Settings": "Private<br>by Design"
+    }
+  }
+}
