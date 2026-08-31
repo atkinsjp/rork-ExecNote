@@ -212,6 +212,9 @@ final class DocumentSearchEngine {
         let end = text.index(range.upperBound, offsetBy: 60, limitedBy: text.endIndex) ?? text.endIndex
         let prefix = start > text.startIndex ? "…" : ""
         let suffix = end < text.endIndex ? "…" : ""
-        return prefix + text[start..<end] + suffix
+        // Convert the Substring explicitly — String + Substring + String
+        // is ambiguous to the type checker on newer toolchains.
+        let body = String(text[start..<end])
+        return prefix + body + suffix
     }
 }
