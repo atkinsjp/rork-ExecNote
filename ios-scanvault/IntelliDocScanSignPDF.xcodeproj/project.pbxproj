@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		XX04533C9C997774DDC93FXX /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = XXB3B350F19C1599D43D79XX /* ZIPFoundation */; };
 		XX70A6411A6EF53BF8ADA0XX /* IntelliDocScanSignPDFWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = XX0B5120F5C01004F13F8DXX /* IntelliDocScanSignPDFWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		XXD63457E41125E77BACFDXX /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = XX8F6E1A701EA04CDCEA3DXX /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +104,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				XX04533C9C997774DDC93FXX /* ZIPFoundation in Frameworks */,
+				XXD63457E41125E77BACFDXX /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +179,7 @@
 			name = IntelliDocScanSignPDF;
 			packageProductDependencies = (
 				XXB3B350F19C1599D43D79XX /* ZIPFoundation */,
+				XX8F6E1A701EA04CDCEA3DXX /* RevenueCat */,
 			);
 			productName = IntelliDocScanSignPDF;
 			productReference = 105FC57A2E9EAD3100EA8BCF /* IntelliDocScanSignPDF.app */;
@@ -293,6 +296,7 @@
 			);
 			packageReferences = (
 				XXEDCA86FC0EF09EC473F8XX /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+				XX56D7F10BAEE1D3529BF9XX /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 		};
 /* End PBXProject section */
@@ -760,6 +764,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		XX56D7F10BAEE1D3529BF9XX /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		XXEDCA86FC0EF09EC473F8XX /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = https://github.com/weichsel/ZIPFoundation.git;
@@ -771,6 +783,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		XX8F6E1A701EA04CDCEA3DXX /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = XX56D7F10BAEE1D3529BF9XX /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
 		XXB3B350F19C1599D43D79XX /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = XXEDCA86FC0EF09EC473F8XX /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
