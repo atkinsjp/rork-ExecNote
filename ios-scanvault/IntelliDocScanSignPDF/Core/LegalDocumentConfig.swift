@@ -40,8 +40,9 @@ nonisolated enum LegalDocumentConfig {
     static var supportURL = URL(string: "https://atkinsmedia.io/support")!
 
     /// Privacy policy hosted on GitHub from the project's repository
-    /// (atkinsjp/rork-ExecNote); Remote Config may override it.
-    static var fallbackPrivacyPolicyURL = URL(string: "https://github.com/atkinsjp/rork-ExecNote/blob/main/privacy-policy.html")!
+    /// (atkinsjp/rork-ExecNote). Points at the Markdown source so GitHub
+    /// renders it as a formatted document page; Remote Config may override it.
+    static var fallbackPrivacyPolicyURL = URL(string: "https://github.com/atkinsjp/rork-ExecNote/blob/main/privacy-policy.md")!
 
     // MARK: - Resolution
 
