@@ -230,8 +230,9 @@ struct LiveScanView: View {
                 .opacity(isFlashing ? 0.85 : 0)
                 .allowsHitTesting(false)
         }
-        .animation(Theme.soft, value: model.quad)
-        .animation(Theme.soft, value: model.isAutoCapturing)
+        // NOTE: no whole-ZStack animation here — the quad updates ~10×/sec,
+        // and a perpetually-restarting spring on this container (which holds
+        // the controls) was swallowing taps on the close/torch buttons.
     }
 
     private var topBar: some View {
@@ -340,6 +341,7 @@ struct LiveScanView: View {
             }
         }
         .scaleEffect(model.isAutoCapturing ? 0.92 : 1)
+        .animation(Theme.soft, value: model.isAutoCapturing)
         .disabled(model.isAutoCapturing)
     }
 
@@ -381,6 +383,7 @@ private struct CircleButton: View {
                 .foregroundStyle(.white)
                 .frame(width: 44, height: 44)
                 .background(Circle().fill(.black.opacity(0.45)))
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
     }
@@ -430,6 +433,9 @@ private struct QuadOverlay: View {
             }
         }
         .allowsHitTesting(false)
+        // Animate the detection overlay in isolation — never the controls
+        // layered above it.
+        .animation(Theme.soft, value: quad)
     }
 
     /// The on-screen rect covered by the aspect-filled video feed.

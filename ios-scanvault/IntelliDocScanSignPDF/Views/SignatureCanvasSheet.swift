@@ -50,9 +50,13 @@ struct SignatureCanvasSheet: View {
     @State private var strokeMultiplier: Double = 1.0
     @State private var title: String = ""
     @State private var type: SignatureType = .signature
+    /// Kept in lockstep with the canvas via `canvasViewDrawingDidChange` —
+    /// PKCanvasView isn't observable, so without this the Save button would
+    /// stay stale-disabled after the user draws.
+    @State private var strokeCount = 0
 
     private var canSave: Bool {
-        !canvasView.drawing.strokes.isEmpty && !title.trimmingCharacters(in: .whitespaces).isEmpty
+        strokeCount > 0 && !title.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     var body: some View {
@@ -71,6 +75,11 @@ struct SignatureCanvasSheet: View {
             .navigationTitle("New Signature")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.ink, for: .navigationBar)
+            .onAppear {
+                // Pre-fill the name so an empty title never silently disables
+                // the Save button for users who just draw and tap Save.
+                if title.isEmpty { title = Self.suggestedTitle(for: type) }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
@@ -152,7 +161,13 @@ struct SignatureCanvasSheet: View {
                         .allowsHitTesting(false)
                     }
 
-                PencilCanvas(canvasView: $canvasView, ink: ink, customColor: customColor, strokeMultiplier: strokeMultiplier)
+                PencilCanvas(
+                    canvasView: $canvasView,
+                    ink: ink,
+                    customColor: customColor,
+                    strokeMultiplier: strokeMultiplier,
+                    onDrawingChanged: { strokeCount = canvasView.drawing.strokes.count }
+                )
                     .clipShape(.rect(cornerRadius: 16, style: .continuous))
             }
             .frame(height: 250)
@@ -291,11 +306,30 @@ struct SignatureCanvasSheet: View {
 // MARK: - PencilKit bridge
 
 /// Smoothing-enabled `PKCanvasView` bound to the selected ink color and weight.
+/// Reports every drawing mutation (stroke, undo, clear) through
+/// `onDrawingChanged` so SwiftUI state stays in sync with the canvas.
 struct PencilCanvas: UIViewRepresentable {
     @Binding var canvasView: PKCanvasView
     let ink: SignatureInk
     var customColor: Color?
     let strokeMultiplier: Double
+    var onDrawingChanged: () -> Void
+
+    final class Coordinator: NSObject, PKCanvasViewDelegate {
+        let onDrawingChanged: () -> Void
+
+        init(onDrawingChanged: @escaping () -> Void) {
+            self.onDrawingChanged = onDrawingChanged
+        }
+
+        func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+            onDrawingChanged()
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onDrawingChanged: onDrawingChanged)
+    }
 
     func makeUIView(context: Context) -> PKCanvasView {
         canvasView.backgroundColor = .clear
@@ -304,6 +338,7 @@ struct PencilCanvas: UIViewRepresentable {
         // PencilKit re-renders dark inks for dark traits (black becomes
         // white); pin the canvas to light so strokes match the picker.
         canvasView.overrideUserInterfaceStyle = .light
+        canvasView.delegate = context.coordinator
         canvasView.tool = makeTool()
         canvasView.drawingGestureRecognizer.isEnabled = true
         return canvasView
