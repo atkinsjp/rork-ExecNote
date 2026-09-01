@@ -194,7 +194,7 @@ struct MainDashboardView: View {
         }
         .fileImporter(
             isPresented: $isImportingFiles,
-            allowedContentTypes: [.image, .pdf],
+            allowedContentTypes: [.image, .pdf, DocxImportService.docxType],
             allowsMultipleSelection: true
         ) { result in
             if case .success(let urls) = result {
@@ -933,6 +933,10 @@ struct MainDashboardView: View {
             if url.pathExtension.lowercased() == "pdf" {
                 // PDFManager is an actor, so rasterization runs off-main.
                 let pages = (try? await PDFManager.shared.pageImages(for: url)) ?? []
+                images.append(contentsOf: pages)
+            } else if url.pathExtension.lowercased() == "docx" {
+                // Word text is laid out into pages off-main by DocxImportService.
+                let pages = (try? await DocxImportService.pages(for: url)) ?? []
                 images.append(contentsOf: pages)
             } else if let data = try? Data(contentsOf: url),
                       let image = UIImage(data: data) {
