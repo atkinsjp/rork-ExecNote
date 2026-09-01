@@ -267,8 +267,8 @@ struct PDFSigningEditorView: View {
             isArmed: armedProfileId != nil,
             armedProfileId: armedProfileId,
             selectedStampId: $selectedStampId,
-            onPlace: { profileId, point in
-                place(profileId: profileId, pageIndex: pageIndex, at: point)
+            onPlace: { profileId, point, canvasSize in
+                place(profileId: profileId, pageIndex: pageIndex, at: point, canvasSize: canvasSize)
             },
             onMove: { stampId, delta, pageSize in
                 move(stampId: stampId, delta: delta, pageSize: pageSize)
@@ -539,15 +539,20 @@ struct PDFSigningEditorView: View {
         armedProfileId = armedProfileId == profile.id ? nil : profile.id
     }
 
-    /// Drops `profileId` centered on `point` (page-local points) with a spring.
-    private func place(profileId: UUID, pageIndex: Int, at point: CGPoint) {
+    /// Drops `profileId` centered on `point` (canvas-view points) with a spring.
+    private func place(profileId: UUID, pageIndex: Int, at point: CGPoint, canvasSize: CGSize) {
         guard let image = imagesById[profileId],
               let profile = profiles.first(where: { $0.id == profileId }),
               pageIndex < pages.count
         else { return }
 
         let pageSize = pages[pageIndex].size
-        let normalized = CGPoint(x: point.x / pageSize.width, y: point.y / pageSize.height)
+        // The canvas shares the page image's aspect ratio, so normalizing the
+        // tap by the *canvas* size yields the correct page fraction. Using the
+        // image's point size instead scaled every drop ~3× toward the
+        // top-left, which also parked the auto-date companion far from where
+        // the user dragged the signature.
+        let normalized = CGPoint(x: point.x / canvasSize.width, y: point.y / canvasSize.height)
 
         // Default footprint: 30% of the page width, aspect-correct.
         let stampAspect = image.size.width / max(image.size.height, 1)
@@ -574,7 +579,10 @@ struct PDFSigningEditorView: View {
             selectedStampId = stamp.id
         }
 
-        if autoDateOn, profile.type == .signature || profile.type == .initials {
+        // Auto-date accompanies every user-authored stamp — signatures,
+        // initials and typed text — but never the date stamp itself or the
+        // session "Sign Here" flag.
+        if autoDateOn, profile.type != .dateStamp, profileId != StampFactory.flagID {
             dateCompanions[stamp.id] = appendAutoDate(below: rect, pageIndex: pageIndex)
         }
 
@@ -814,7 +822,7 @@ private struct PageSigningCanvas: View {
     var armedProfileId: UUID?
     @Binding var selectedStampId: UUID?
 
-    let onPlace: (UUID, CGPoint) -> Void
+    let onPlace: (UUID, CGPoint, CGSize) -> Void
     let onMove: (UUID, CGSize, CGSize) -> Void
     let onResize: (UUID, CGFloat) -> Void
     let onRotate: (UUID, Double) -> Void
@@ -862,7 +870,7 @@ private struct PageSigningCanvas: View {
             .contentShape(Rectangle())
             .onTapGesture { location in
                 if let armed = armedProfileId {
-                    onPlace(armed, location)
+                    onPlace(armed, location, geo.size)
                 } else {
                     selectedStampId = nil
                 }
@@ -871,7 +879,7 @@ private struct PageSigningCanvas: View {
                 guard let idText = items.first,
                       let profileId = UUID(uuidString: idText)
                 else { return false }
-                onPlace(profileId, point)
+                onPlace(profileId, point, geo.size)
                 return true
             }
         }
