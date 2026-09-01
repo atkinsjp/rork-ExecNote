@@ -6,6 +6,7 @@
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 /// A scan that has just been filed — drives the fly-into-folder animation.
 struct FiledScan: Identifiable, Equatable {
@@ -36,6 +37,7 @@ struct MainDashboardView: View {
     @State private var isShowingNewFolder = false
     @State private var photoSelection: [PhotosPickerItem] = []
     @State private var isImportingPhotos = false
+    @State private var isImportingFiles = false
     @State private var isShowingPaywall = false
     @State private var isShowingSettings = false
 
@@ -189,6 +191,15 @@ struct MainDashboardView: View {
         .onChange(of: photoSelection) { _, items in
             guard !items.isEmpty else { return }
             Task { await importPhotos(items) }
+        }
+        .fileImporter(
+            isPresented: $isImportingFiles,
+            allowedContentTypes: [.image, .pdf],
+            allowsMultipleSelection: true
+        ) { result in
+            if case .success(let urls) = result {
+                Task { await importFiles(urls) }
+            }
         }
         .task { await store.bootstrap() }
         .task { handleDeepLinks() }
@@ -852,6 +863,24 @@ struct MainDashboardView: View {
                 .shadow(color: Theme.amber.opacity(0.4), radius: 18, y: 8)
             }
             .buttonStyle(PressableStyle(scale: 0.96))
+
+            Button {
+                Haptics.impact(.light)
+                isImportingFiles = true
+            } label: {
+                Image(systemName: "folder")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(Theme.textSecondary)
+                    .frame(width: 56, height: 56)
+                    .background {
+                        Circle().fill(Theme.surfaceHigh)
+                    }
+                    .overlay {
+                        Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                    }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("Import from Files")
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 10)
@@ -889,6 +918,33 @@ struct MainDashboardView: View {
         photoSelection = []
         guard !images.isEmpty else { return }
         scanner.load(images, source: .photoImport)
+        isShowingReview = true
+    }
+
+    /// Turns Files-picked PDFs and images into session pages, then routes them
+    /// through the standard review flow.
+    private func importFiles(_ urls: [URL]) async {
+        var images: [UIImage] = []
+        for url in urls {
+            guard !url.hasDirectoryPath else { continue }
+            let secured = url.startAccessingSecurityScopedResource()
+            defer { if secured { url.stopAccessingSecurityScopedResource() } }
+
+            if url.pathExtension.lowercased() == "pdf" {
+                // PDFManager is an actor, so rasterization runs off-main.
+                let pages = (try? await PDFManager.shared.pageImages(for: url)) ?? []
+                images.append(contentsOf: pages)
+            } else if let data = try? Data(contentsOf: url),
+                      let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        guard !images.isEmpty else {
+            Haptics.warning()
+            return
+        }
+        Haptics.success()
+        scanner.load(images, source: .fileImport)
         isShowingReview = true
     }
 

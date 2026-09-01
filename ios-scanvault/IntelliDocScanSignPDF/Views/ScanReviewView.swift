@@ -121,7 +121,11 @@ struct ScanReviewView: View {
                 Text("Review")
                     .font(Theme.display(.headline))
                     .foregroundStyle(Theme.textPrimary)
-                Text(scanner.source == .camera ? "Captured with camera" : "Imported from Photos")
+                Text(scanner.source == .camera
+                     ? "Captured with camera"
+                     : scanner.source == .fileImport
+                     ? "Imported from Files"
+                     : "Imported from Photos")
                     .font(Theme.mono(.caption2))
                     .foregroundStyle(Theme.textTertiary)
             }

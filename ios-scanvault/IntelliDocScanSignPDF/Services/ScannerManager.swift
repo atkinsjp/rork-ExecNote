@@ -12,6 +12,7 @@ import VisionKit
 nonisolated enum CaptureSource: Equatable, Sendable {
     case camera
     case photoImport
+    case fileImport
 }
 
 /// Owns the live capture session state and bridges `VNDocumentCameraViewController`

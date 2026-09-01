@@ -6,6 +6,7 @@
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 /// Contents of a single folder. Folders marked private stay sealed until the
 /// user clears a Face ID / passcode check.
@@ -43,6 +44,7 @@ struct FolderDetailView: View {
     @State private var isUploading = false
     @State private var isShowingCamera = false
     @State private var isImportingPhotos = false
+    @State private var isImportingFiles = false
     @State private var isShowingReview = false
     @State private var photoSelection: [PhotosPickerItem] = []
 
@@ -133,6 +135,11 @@ struct FolderDetailView: View {
             } label: {
                 Label("Import from Photos", systemImage: "photo.on.rectangle")
             }
+            Button {
+                isImportingFiles = true
+            } label: {
+                Label("Choose from Files", systemImage: "folder")
+            }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("New pages are filed straight into this folder.")
@@ -170,6 +177,15 @@ struct FolderDetailView: View {
         .onChange(of: photoSelection) { _, items in
             guard !items.isEmpty else { return }
             Task { await importPhotos(items) }
+        }
+        .fileImporter(
+            isPresented: $isImportingFiles,
+            allowedContentTypes: [.image, .pdf],
+            allowsMultipleSelection: true
+        ) { result in
+            if case .success(let urls) = result {
+                Task { await importFiles(urls) }
+            }
         }
         .task {
             guard locks.isLocked(folder) else { return }
@@ -239,6 +255,33 @@ struct FolderDetailView: View {
         photoSelection = []
         guard !images.isEmpty else { return }
         scanner.load(images, source: .photoImport)
+        isShowingReview = true
+    }
+
+    /// Turns Files-picked PDFs and images into session pages, then routes them
+    /// through the standard review flow.
+    private func importFiles(_ urls: [URL]) async {
+        var images: [UIImage] = []
+        for url in urls {
+            guard !url.hasDirectoryPath else { continue }
+            let secured = url.startAccessingSecurityScopedResource()
+            defer { if secured { url.stopAccessingSecurityScopedResource() } }
+
+            if url.pathExtension.lowercased() == "pdf" {
+                // PDFManager is an actor, so rasterization runs off-main.
+                let pages = (try? await PDFManager.shared.pageImages(for: url)) ?? []
+                images.append(contentsOf: pages)
+            } else if let data = try? Data(contentsOf: url),
+                      let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        guard !images.isEmpty else {
+            Haptics.warning()
+            return
+        }
+        Haptics.success()
+        scanner.load(images, source: .fileImport)
         isShowingReview = true
     }
 
