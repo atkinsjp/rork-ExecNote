@@ -724,10 +724,23 @@ struct PDFSigningEditorView: View {
     }
 
     private func move(stampId: UUID, delta: CGSize, pageSize: CGSize) {
+        let dx = delta.width / pageSize.width
+        let dy = delta.height / pageSize.height
+
+        // The auto-date companion rides along so the signature + date pair
+        // stays together while the user positions it.
+        if let companionId = dateCompanions[stampId],
+           let companionIndex = placements.firstIndex(where: { $0.id == companionId }) {
+            var companion = placements[companionIndex].data.rect
+            companion.origin.x += dx
+            companion.origin.y += dy
+            placements[companionIndex].data.rect = companion.clampedToPage
+        }
+
         guard let index = placements.firstIndex(where: { $0.id == stampId }) else { return }
         var rect = placements[index].data.rect
-        rect.origin.x += delta.width / pageSize.width
-        rect.origin.y += delta.height / pageSize.height
+        rect.origin.x += dx
+        rect.origin.y += dy
         placements[index].data.rect = rect.clampedToPage
     }
 
@@ -936,7 +949,10 @@ private struct StampOverlay: View {
             .shadow(color: .black.opacity(0.35), radius: 5, y: 3)
             .contentShape(Rectangle())
             .onTapGesture { onSelect() }
-            .gesture(manipulationGestures)
+            // High priority so the stamp's drag wins over the page scroll —
+            // as a plain gesture it fought the ScrollView's pan and only
+            // engaged after several tries.
+            .highPriorityGesture(manipulationGestures)
             .position(
                 x: stamp.data.rect.midX * pageSize.width,
                 y: stamp.data.rect.midY * pageSize.height
