@@ -263,6 +263,9 @@ struct MainDashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("IntelliDoc")
                         .font(Theme.display(.largeTitle))
+                        // Keep the wordmark on one line — otherwise SwiftUI
+                        // hyphenates it when the pills crowd the header row.
+                        .fixedSize(horizontal: true, vertical: false)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [Theme.textPrimary, Theme.textSecondary],
