@@ -597,8 +597,10 @@ private struct PaywallStep: View {
                 VStack(spacing: 3) {
                     Text("Continue with Free Tier")
                         .font(.system(size: 16, weight: .semibold))
-                    Text("\(SubscriptionManager.freeScanLimit) scans · \(SubscriptionManager.freeRedactionLimit) redactions · \(SubscriptionManager.freeSignatureProfileLimit) signatures · \(SubscriptionManager.freeRewriteLimit) rewrites")
+                    Text(SubscriptionManager.freeTierSummary)
                         .font(.system(size: 13, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
                 }
                 .foregroundStyle(Theme.textPrimary)
                 .frame(maxWidth: .infinity)

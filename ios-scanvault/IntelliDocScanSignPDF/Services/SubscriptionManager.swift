@@ -147,6 +147,10 @@ final class SubscriptionManager {
     nonisolated static let freeSignatureProfileLimit = 5
     nonisolated static let freeRewriteLimit = 5
 
+    /// Canonical one-line free-tier description. Counters are lifetime totals
+    /// per device — never monthly — so the copy pins that explicitly.
+    nonisolated static let freeTierSummary = "\(freeScanLimit) scans · \(freeRedactionLimit) redactions · \(freeSignatureProfileLimit) signatures · \(freeRewriteLimit) rewrites — total, not monthly"
+
     init(previewOnly: Bool = false) {
         if previewOnly {
             // Previews: mock catalog, no RevenueCat, no network, instant state.
