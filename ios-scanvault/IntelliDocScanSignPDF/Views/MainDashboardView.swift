@@ -273,13 +273,16 @@ struct MainDashboardView: View {
                                 endPoint: .bottom
                             )
                         )
-                    Text("\(store.documents.count) documents · \(store.totalPages) pages")
-                        .font(Theme.mono(.caption))
-                        .foregroundStyle(Theme.textTertiary)
                 }
                 Spacer(minLength: 12)
                 settingsPill
                 proPill
+            }
+            HStack(spacing: 10) {
+                Text("\(store.documents.count) documents · \(store.totalPages) pages")
+                    .font(Theme.mono(.caption))
+                    .foregroundStyle(Theme.textTertiary)
+                Spacer(minLength: 8)
                 cloudPill
             }
             ScanTicker()
@@ -337,22 +340,33 @@ struct MainDashboardView: View {
         .accessibilityLabel(subscriptions.hasPro ? "IntelliDoc Pro active" : "Upgrade to Pro")
     }
 
+    /// Storage status badge. Tapping it opens Settings, where the privacy and
+    /// storage details live; the label never wraps onto multiple lines.
     private var cloudPill: some View {
-        HStack(spacing: 6) {
-            Image(systemName: store.cloudEnabled ? "checkmark.icloud.fill" : "iphone.gen3")
-                .font(.system(size: 11, weight: .semibold))
-            Text(store.cloudEnabled ? "Firebase" : "On device")
-                .font(.system(size: 11, weight: .semibold))
+        Button {
+            Haptics.selection()
+            isShowingSettings = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: store.cloudEnabled ? "checkmark.icloud.fill" : "iphone.gen3")
+                    .font(.system(size: 11, weight: .semibold))
+                Text(store.cloudEnabled ? "Firebase" : "On device")
+                    .font(.system(size: 11, weight: .semibold))
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .foregroundStyle(store.cloudEnabled ? Color(hex: "3FB0A0") : Theme.textSecondary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background {
+                Capsule().fill(Color.white.opacity(0.05))
+            }
+            .overlay {
+                Capsule().strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            }
         }
-        .foregroundStyle(store.cloudEnabled ? Color(hex: "3FB0A0") : Theme.textSecondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background {
-            Capsule().fill(Color.white.opacity(0.05))
-        }
-        .overlay {
-            Capsule().strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(store.cloudEnabled ? "Cloud storage active. Open settings" : "Stored on device. Open settings")
     }
 
     // MARK: - Vault lock helpers
