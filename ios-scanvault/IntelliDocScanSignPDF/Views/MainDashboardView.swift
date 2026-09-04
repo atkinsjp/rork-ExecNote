@@ -954,7 +954,7 @@ struct MainDashboardView: View {
         guard !images.isEmpty else { return }
         beginScanFlow {
             scanner.load(images, source: .photoImport)
-            isShowingReview = true
+            presentReviewAfterImportDismissal()
         }
     }
 
@@ -987,6 +987,18 @@ struct MainDashboardView: View {
         Haptics.success()
         beginScanFlow {
             scanner.load(images, source: .fileImport)
+            presentReviewAfterImportDismissal()
+        }
+    }
+
+    /// Pickers are sheets — presenting the review cover while the picker is
+    /// still dismissing leaves the review's close button unable to dismiss.
+    /// Close the pickers, wait out the dismissal, then present review.
+    private func presentReviewAfterImportDismissal() {
+        isImportingPhotos = false
+        isImportingFiles = false
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.5))
             isShowingReview = true
         }
     }
