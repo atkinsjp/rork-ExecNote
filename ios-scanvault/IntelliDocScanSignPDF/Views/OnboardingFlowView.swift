@@ -594,11 +594,21 @@ private struct PaywallStep: View {
                 Haptics.selection()
                 onSkip()
             } label: {
-                Text("Continue with free tier — 5 redactions, 1 signature")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Theme.textSecondary)
-                    .padding(.bottom, 12)
+                VStack(spacing: 3) {
+                    Text("Continue with Free Tier")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("\(SubscriptionManager.freeScanLimit) scans · \(SubscriptionManager.freeRedactionLimit) redactions · \(SubscriptionManager.freeSignatureProfileLimit) signatures · \(SubscriptionManager.freeRewriteLimit) rewrites")
+                        .font(.system(size: 13, weight: .medium))
+                }
+                .foregroundStyle(Theme.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background { Capsule().fill(Theme.surface) }
+                .overlay { Capsule().strokeBorder(Theme.hairline, lineWidth: 1) }
             }
+            .buttonStyle(PressableStyle(scale: 0.97))
+            .padding(.horizontal, 20)
+            .padding(.bottom, 12)
         }
         .onChange(of: subscriptions.hasPro) { _, isPro in
             if isPro && !hasObservedPurchase {

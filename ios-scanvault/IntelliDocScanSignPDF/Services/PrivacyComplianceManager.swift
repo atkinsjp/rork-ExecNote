@@ -173,6 +173,7 @@ final class PrivacyComplianceManager {
         UserDefaults.standard.removeObject(forKey: VaultIdentity.storageKey)
         UserDefaults.standard.removeObject(forKey: OnboardingPaywallCoordinator.hasCompletedKey)
         UserDefaults.standard.removeObject(forKey: AppearanceMode.storageKey)
+        FreeUsageLedger.reset()
 
         // --- In-memory reset (cancels realtime listeners too) --------------
         await store.resetForAccountDeletion()

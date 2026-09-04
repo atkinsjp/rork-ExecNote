@@ -11,26 +11,63 @@ import RevenueCat
 
 /// Capabilities unlocked by IntelliDoc Pro.
 nonisolated enum ProFeature: String, CaseIterable, Sendable, Identifiable {
+    case unlimitedScans
     case unlimitedRedactions
     case signatureKitAndAudit
+    case unlimitedRewrites
     case cloudSync
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
+        case .unlimitedScans: "Unlimited Scans & Imports"
         case .unlimitedRedactions: "Unlimited PII Auto-Redactions"
         case .signatureKitAndAudit: "Multi-Profile Signature Kit & Audit Trail"
+        case .unlimitedRewrites: "Unlimited AI Rewrites & Polish"
         case .cloudSync: "Cloud Sync to Firebase"
         }
     }
 
     var symbolName: String {
         switch self {
+        case .unlimitedScans: "doc.viewfinder.fill"
         case .unlimitedRedactions: "eye.slash.fill"
         case .signatureKitAndAudit: "signature"
+        case .unlimitedRewrites: "wand.and.stars"
         case .cloudSync: "icloud.fill"
         }
+    }
+}
+
+// MARK: - Free usage ledger
+
+/// Cumulative free-tier usage counters, persisted in UserDefaults (declared
+/// reason: app functionality). Counting is lifetime-per-device by design so
+/// the free quota can't be refreshed by relaunching.
+nonisolated enum FreeUsageLedger {
+    static let scansUsedKey = "freeUsage.scansUsed"
+    static let rewritesUsedKey = "freeUsage.rewritesUsed"
+
+    static var scansUsed: Int {
+        UserDefaults.standard.integer(forKey: scansUsedKey)
+    }
+
+    static var rewritesUsed: Int {
+        UserDefaults.standard.integer(forKey: rewritesUsedKey)
+    }
+
+    static func recordScan() {
+        UserDefaults.standard.set(scansUsed + 1, forKey: scansUsedKey)
+    }
+
+    static func recordRewrite() {
+        UserDefaults.standard.set(rewritesUsed + 1, forKey: rewritesUsedKey)
+    }
+
+    static func reset() {
+        UserDefaults.standard.removeObject(forKey: scansUsedKey)
+        UserDefaults.standard.removeObject(forKey: rewritesUsedKey)
     }
 }
 
@@ -105,8 +142,10 @@ final class SubscriptionManager {
     var statusMessage: String?
 
     /// Free-tier limits enforced by the feature gates.
+    nonisolated static let freeScanLimit = 5
     nonisolated static let freeRedactionLimit = 5
-    nonisolated static let freeSignatureProfileLimit = 1
+    nonisolated static let freeSignatureProfileLimit = 5
+    nonisolated static let freeRewriteLimit = 5
 
     init(previewOnly: Bool = false) {
         if previewOnly {
@@ -142,6 +181,27 @@ final class SubscriptionManager {
     /// Free-tier signature kit size before the paywall is required.
     var signatureProfileAllowance: Int? {
         hasPro ? nil : Self.freeSignatureProfileLimit
+    }
+
+    /// Free scans remaining (`nil` = unlimited under Pro). Cumulative count of
+    /// documents filed through the scan flow.
+    var scanAllowance: Int? {
+        hasPro ? nil : max(0, Self.freeScanLimit - FreeUsageLedger.scansUsed)
+    }
+
+    /// Free AI rewrites remaining (`nil` = unlimited under Pro).
+    var rewriteAllowance: Int? {
+        hasPro ? nil : max(0, Self.freeRewriteLimit - FreeUsageLedger.rewritesUsed)
+    }
+
+    /// Records one filed scan against the free quota.
+    func recordScanUsed() {
+        FreeUsageLedger.recordScan()
+    }
+
+    /// Records one successful AI rewrite against the free quota.
+    func recordRewriteUsed() {
+        FreeUsageLedger.recordRewrite()
     }
 
     // MARK: - Storefront

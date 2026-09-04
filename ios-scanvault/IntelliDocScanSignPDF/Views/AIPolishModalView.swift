@@ -36,6 +36,7 @@ struct AIPolishModalView: View {
     @State private var exportError: String?
     @State private var copiedTick = 0
     @State private var filedNotice: String?
+    @State private var isShowingPaywall = false
     /// Bumped every few streamed tokens to fire haptic pulses.
     @State private var pulseTick = 0
 
@@ -87,6 +88,9 @@ struct AIPolishModalView: View {
             DeviceFileExporter(url: item.url)
                 .presentationDetents([.large])
                 .ignoresSafeArea()
+        }
+        .sheet(isPresented: $isShowingPaywall) {
+            PaywallView()
         }
         .onChange(of: filedNotice) { _, newValue in
             guard newValue != nil else { return }
@@ -523,6 +527,14 @@ struct AIPolishModalView: View {
     // MARK: - Generation
 
     private func generate(_ format: NoteTransformFormat) {
+        // Free tier is capped at five AI rewrites; Pro is unlimited. Exhausted
+        // users get the paywall instead of a burned generation.
+        if SubscriptionManager.shared.rewriteAllowance == 0 {
+            Haptics.warning()
+            isShowingPaywall = true
+            return
+        }
+
         phase = .streaming
         streamingText = ""
         exportError = nil
@@ -552,6 +564,8 @@ struct AIPolishModalView: View {
                 previewRecord = record
                 phase = .done(text)
                 await store.addTransform(record, for: live)
+                // Counts against the five-rewrite free tier (no-op under Pro).
+                SubscriptionManager.shared.recordRewriteUsed()
                 Haptics.success()
             } catch {
                 phase = .failed(error.localizedDescription)

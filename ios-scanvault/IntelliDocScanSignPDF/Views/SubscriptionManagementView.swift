@@ -126,7 +126,7 @@ struct SubscriptionManagementView: View {
             return "Pro unlocked on this Apple ID"
         }
         let limits = SubscriptionManager.self
-        return "\(limits.freeRedactionLimit) redactions & \(limits.freeSignatureProfileLimit) signature profile"
+        return "\(limits.freeScanLimit) scans · \(limits.freeRedactionLimit) redactions · \(limits.freeSignatureProfileLimit) signatures · \(limits.freeRewriteLimit) AI rewrites"
     }
 
     // MARK: - Plans

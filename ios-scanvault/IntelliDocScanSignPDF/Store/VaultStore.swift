@@ -490,6 +490,9 @@ final class VaultStore {
             thumbnails[documentId] = await pdf.thumbnail(for: result.url)
             await persist()
 
+            // Counts against the five-scan free tier (no-op under Pro).
+            SubscriptionManager.shared.recordScanUsed()
+
             // Multi-page scans surface a Live Activity in the Dynamic Island.
             if pages.count > 1 {
                 LiveActivityCoordinator.shared.begin(

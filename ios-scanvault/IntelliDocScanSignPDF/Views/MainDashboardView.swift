@@ -900,13 +900,26 @@ struct MainDashboardView: View {
 
     // MARK: - Actions
 
+    /// Free tier files up to five scans; Pro is unlimited. Exhausted users
+    /// land on the paywall instead of the capture flow.
+    private func beginScanFlow(_ action: () -> Void) {
+        if subscriptions.scanAllowance == 0 {
+            Haptics.warning()
+            isShowingPaywall = true
+            return
+        }
+        action()
+    }
+
     private func startScan() {
-        scanner.reset()
-        if scanner.isDocumentCameraAvailable {
-            scanner.beginCapture()
-            isShowingCamera = true
-        } else {
-            isImportingPhotos = true
+        beginScanFlow {
+            scanner.reset()
+            if scanner.isDocumentCameraAvailable {
+                scanner.beginCapture()
+                isShowingCamera = true
+            } else {
+                isImportingPhotos = true
+            }
         }
     }
 
@@ -920,8 +933,10 @@ struct MainDashboardView: View {
         }
         photoSelection = []
         guard !images.isEmpty else { return }
-        scanner.load(images, source: .photoImport)
-        isShowingReview = true
+        beginScanFlow {
+            scanner.load(images, source: .photoImport)
+            isShowingReview = true
+        }
     }
 
     /// Turns Files-picked PDFs and images into session pages, then routes them
@@ -951,8 +966,10 @@ struct MainDashboardView: View {
             return
         }
         Haptics.success()
-        scanner.load(images, source: .fileImport)
-        isShowingReview = true
+        beginScanFlow {
+            scanner.load(images, source: .fileImport)
+            isShowingReview = true
+        }
     }
 
     private func targetPoint(
