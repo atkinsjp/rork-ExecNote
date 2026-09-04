@@ -148,8 +148,13 @@ struct FolderDetailView: View {
             CameraCaptureView(
                 onFinish: { images in
                     scanner.finish(with: images, source: .camera)
+                    // Wait for the camera cover to finish dismissing before
+                    // presenting review, or the review cover can't dismiss.
                     isShowingCamera = false
-                    isShowingReview = true
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(0.5))
+                        isShowingReview = true
+                    }
                 },
                 onCancel: {
                     scanner.cancel()
@@ -160,7 +165,6 @@ struct FolderDetailView: View {
                     isShowingCamera = false
                 }
             )
-            .ignoresSafeArea()
         }
         .fullScreenCover(isPresented: $isShowingReview) {
             ScanReviewView(presetFolderId: folder.id) { _ in

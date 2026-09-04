@@ -140,8 +140,14 @@ struct MainDashboardView: View {
             CameraCaptureView(
                 onFinish: { images in
                     scanner.finish(with: images, source: .camera)
+                    // Present review only after the camera cover has fully
+                    // dismissed — presenting mid-dismissal leaves the review
+                    // cover in a state where its close button can't dismiss.
                     isShowingCamera = false
-                    isShowingReview = true
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(0.5))
+                        isShowingReview = true
+                    }
                 },
                 onCancel: {
                     scanner.cancel()
@@ -152,7 +158,6 @@ struct MainDashboardView: View {
                     isShowingCamera = false
                 }
             )
-            .ignoresSafeArea()
         }
         .fullScreenCover(isPresented: $isShowingReview) {
             ScanReviewView { filed in

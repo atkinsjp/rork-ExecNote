@@ -73,7 +73,6 @@ struct ScanReviewView: View {
                     isAddingPages = false
                 }
             )
-            .ignoresSafeArea()
         }
         .sheet(isPresented: $isFiling) {
             SaveAndFileSheet(
@@ -103,8 +102,10 @@ struct ScanReviewView: View {
     private var topBar: some View {
         HStack {
             Button {
-                scanner.reset()
+                // Dismiss first — resetting the scanner swaps the view to the
+                // empty state mid-dismissal, which can stall the animation.
                 dismiss()
+                scanner.reset()
             } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 15, weight: .semibold))
