@@ -247,11 +247,26 @@ struct SubscriptionManagementView: View {
                     .multilineTextAlignment(.center)
             }
 
+            Text(billingDisclosure(for: effectivePlan))
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Theme.textTertiary)
+                .multilineTextAlignment(.center)
+
             Text("Switching applies immediately — App Store credits any unused time from your current plan.")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Theme.textTertiary)
                 .multilineTextAlignment(.center)
         }
+    }
+
+    /// Pre-purchase billing disclosure: states what happens after a free
+    /// trial ends and that the plan auto-renews unless cancelled.
+    private func billingDisclosure(for plan: PlanPresentation) -> String {
+        let cadence = plan.cadence == .annual ? "year" : "month"
+        if let trial = plan.trialDays, trial > 0, !subscriptions.hasPro {
+            return "\(trial)-day free trial, then \(plan.price) per \(cadence). Auto-renews unless cancelled at least 24 hours before the trial ends."
+        }
+        return "\(plan.price) per \(cadence). Auto-renews unless cancelled at least 24 hours before the end of the current period."
     }
 
     private var manageSection: some View {

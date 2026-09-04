@@ -125,9 +125,14 @@ final class SubscriptionManager {
     /// RevenueCat entitlement unlocked by both IntelliDoc plans.
     static let entitlementID = "intellidoc_pro"
 
-    /// True when no real offering is available; purchases resolve
-    /// instantly against the mock catalog.
+    /// True when no real offering is available; the mock catalog is shown.
+    /// Purchases in this state only resolve in previews — production never
+    /// unlocks Pro locally.
     private(set) var isMockMode = false
+
+    /// True only for SwiftUI preview instances; the sole context where a
+    /// mock (package-less) purchase resolves to Pro.
+    private let isPreviewInstance: Bool
 
     private(set) var plans: [PlanPresentation] = []
     /// Live RevenueCat packages keyed by their App Store product identifier.
@@ -152,6 +157,7 @@ final class SubscriptionManager {
     nonisolated static let freeTierSummary = "\(freeScanLimit) scans · \(freeRedactionLimit) redactions · \(freeSignatureProfileLimit) signatures · \(freeRewriteLimit) rewrites — total, not monthly"
 
     init(previewOnly: Bool = false) {
+        isPreviewInstance = previewOnly
         if previewOnly {
             // Previews: mock catalog, no RevenueCat, no network, instant state.
             isMockMode = true
@@ -289,12 +295,22 @@ final class SubscriptionManager {
         statusMessage = nil
         defer { purchaseInFlight = false }
 
-        // Mock path: instant unlock, no network.
+        // No live package yet: previews resolve instantly; production never
+        // unlocks Pro locally — it re-loads the storefront once so a
+        // transient failure can recover, then surfaces a retryable state.
+        if packagesByProductID[plan.id] == nil {
+            if isPreviewInstance {
+                try? await Task.sleep(for: .milliseconds(450))
+                hasPro = true
+                activePlanID = nil
+                currentRenewalDate = nil
+                return
+            }
+            await loadProducts()
+        }
+
         guard let package = packagesByProductID[plan.id] else {
-            try? await Task.sleep(for: .milliseconds(450))
-            hasPro = true
-            activePlanID = nil
-            currentRenewalDate = nil
+            statusMessage = "Can't reach the App Store right now — check your connection and try again."
             return
         }
 

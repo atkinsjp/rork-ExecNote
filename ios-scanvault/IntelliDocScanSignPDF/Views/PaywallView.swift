@@ -186,6 +186,14 @@ struct PaywallView: View {
             .buttonStyle(PressableStyle(scale: 0.97))
             .disabled(subscriptions.purchaseInFlight)
 
+            if !subscriptions.hasPro {
+                Text(billingDisclosure)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 12)
+            }
+
             if let message = subscriptions.statusMessage {
                 Text(message)
                     .font(Theme.mono(.caption2))
@@ -193,6 +201,16 @@ struct PaywallView: View {
                     .multilineTextAlignment(.center)
             }
         }
+    }
+
+    /// Pre-purchase billing disclosure: states what happens after a free
+    /// trial ends and that the plan auto-renews unless cancelled.
+    private var billingDisclosure: String {
+        let cadence = selectedPlan.cadence == .annual ? "year" : "month"
+        if let trial = selectedPlan.trialDays, trial > 0 {
+            return "\(trial)-day free trial, then \(selectedPlan.price) per \(cadence). Auto-renews unless cancelled at least 24 hours before the trial ends."
+        }
+        return "\(selectedPlan.price) per \(cadence). Auto-renews unless cancelled at least 24 hours before the end of the current period."
     }
 
     /// Remote Config A/B headline copy (`paywall_variant`).
