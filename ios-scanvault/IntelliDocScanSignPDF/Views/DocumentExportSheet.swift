@@ -31,6 +31,7 @@ struct DocumentExportSheet: View {
 
     @State private var format: ExportFormat = .pdf
     @State private var preset: CompressionPreset = .email
+    @State private var pageOrder: [Int]?
     @State private var originalSize: Int64 = 0
     @State private var estimatedSize: Int64?
     @State private var isEstimating = false
@@ -49,6 +50,7 @@ struct DocumentExportSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
                         header
+                        pagesSection
                         formatSection
                         if format == .pdf {
                             presetSection
@@ -94,9 +96,25 @@ struct DocumentExportSheet: View {
                 .font(Theme.display(.headline))
                 .foregroundStyle(Theme.textPrimary)
                 .lineLimit(2)
-            Text("\(document.pageCount) pages · flattened export — redactions & signatures burned in")
+            Text(headerMeta)
                 .font(Theme.mono(.caption))
                 .foregroundStyle(Theme.textTertiary)
+        }
+    }
+
+    private var headerMeta: String {
+        var meta = "\(document.pageCount) pages · flattened export — redactions & signatures burned in"
+        if pageOrder != nil { meta += " · custom order" }
+        return meta
+    }
+
+    /// Draggable page thumbnails; the chosen arrangement flows into the export.
+    private var pagesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader(title: "Pages")
+            PageReorderGrid(document: document) { order in
+                pageOrder = order
+            }
         }
     }
 
@@ -357,7 +375,8 @@ struct DocumentExportSheet: View {
             let url = try await coordinator.buildExport(
                 document: document,
                 format: format,
-                preset: preset
+                preset: preset,
+                pageOrder: pageOrder
             )
             ticker.cancel()
             exportProgress = 1

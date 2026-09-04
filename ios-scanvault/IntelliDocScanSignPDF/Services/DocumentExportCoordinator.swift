@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import PDFKit
 import UIKit
 
 nonisolated enum ExportError: LocalizedError {
@@ -70,18 +71,24 @@ final class DocumentExportCoordinator {
     }
 
     /// Builds the export file for `document` and returns its temporary URL.
+    /// `pageOrder` (original page indices in display order) rearranges pages
+    /// losslessly before anything is built; `nil` keeps the original order.
     @discardableResult
     func buildExport(
         document: ScannedDocument,
         format: ExportFormat,
-        preset: CompressionPreset = .email
+        preset: CompressionPreset = .email,
+        pageOrder: [Int]? = nil
     ) async throws -> URL {
         let safeName = sanitizedFileName(document.title)
 
         switch format {
         case .pdf:
-            guard let sourceURL = await sourceURL(for: document) else {
+            guard var sourceURL = await sourceURL(for: document) else {
                 throw ExportError.noSource
+            }
+            if let pageOrder, let reordered = reorderedPDF(at: sourceURL, order: pageOrder) {
+                sourceURL = reordered
             }
 
             let result = try await compression.compress(
@@ -104,8 +111,16 @@ final class DocumentExportCoordinator {
             let pages = await PDFManager.shared.pageImages(for: sourceURL, maxWidth: 1700)
             guard !pages.isEmpty else { throw ExportError.noSource }
 
+            // Honor a custom page arrangement for the image pack too.
+            let orderedPages: [UIImage]
+            if let pageOrder, pageOrder.count == pages.count {
+                orderedPages = pageOrder.compactMap { pages.indices.contains($0) ? pages[$0] : nil }
+            } else {
+                orderedPages = pages
+            }
+
             var entries: [(name: String, data: Data)] = []
-            for (index, page) in pages.enumerated() {
+            for (index, page) in orderedPages.enumerated() {
                 let jpeg = page.jpegData(compressionQuality: 0.85) ?? Data()
                 entries.append((name: "\(safeName)-p\(index + 1).jpg", data: jpeg))
             }
@@ -155,6 +170,25 @@ final class DocumentExportCoordinator {
             markdown += "\n\n"
         }
         return markdown
+    }
+
+    /// Writes a page-reordered copy of the source PDF to a temporary file
+    /// using PDFKit — lossless page moves, no re-rendering. Returns `nil` when
+    /// the order matches the original, the count is off, or the PDF won't parse.
+    private func reorderedPDF(at sourceURL: URL, order: [Int]) -> URL? {
+        guard let pdf = PDFDocument(url: sourceURL), order.count == pdf.pageCount else { return nil }
+        guard order != Array(0..<pdf.pageCount) else { return nil }
+
+        let copy = PDFDocument()
+        for (newIndex, originalIndex) in order.enumerated() {
+            guard originalIndex < pdf.pageCount, let page = pdf.page(at: originalIndex) else { continue }
+            copy.insert(page, at: newIndex)
+        }
+
+        let url = FileManager.default.temporaryDirectory
+            .appending(path: "reorder-\(UUID().uuidString).pdf")
+        guard copy.write(to: url) else { return nil }
+        return url
     }
 
     private func sanitizedFileName(_ title: String) -> String {
